@@ -28,6 +28,7 @@ public class NetworkManager : MonoBehaviour {
     [SerializeField] private ushort maxPlayers;
     private string connectedIP;
     private string chosenMap;
+    private string popupMsg;
 
     public GameObject playerPrefab;
     public GameObject localPlayerPrefab;
@@ -38,6 +39,7 @@ public class NetworkManager : MonoBehaviour {
     private void Awake() {
         Singleton = this;
         DontDestroyOnLoad(this);
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     public string GetConnectedIp() {
@@ -96,8 +98,8 @@ public class NetworkManager : MonoBehaviour {
     }
 
     internal void LeaveGame() {
-        Server.Stop();
         Client.Disconnect();
+        Server.Stop();
         ReturnToMainMenu();
     }
 
@@ -107,7 +109,7 @@ public class NetworkManager : MonoBehaviour {
     }
 
     private void FailedToConnect(object sender, EventArgs e) {
-        SceneManager.LoadScene("MainMenu");
+        MainMenu.Singleton.DisplayPopup("Unable to connect to specified IP");
     }
 
     private void PlayerJoined(object sender, ClientConnectedEventArgs e) {
@@ -125,6 +127,7 @@ public class NetworkManager : MonoBehaviour {
 
     private void DidDisconnect(object sender, EventArgs e) {
         ReturnToMainMenu();
+        popupMsg = "You were disconnected from the server";
     }
 
     private void ReturnToMainMenu() {
@@ -134,5 +137,12 @@ public class NetworkManager : MonoBehaviour {
         Player.List.Clear();
 
         SceneManager.LoadScene("MainMenu");
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode) {
+        if (scene.name == "MainMenu" && !String.IsNullOrEmpty(popupMsg)) {
+            MainMenu.Singleton.DisplayPopup(popupMsg);
+            popupMsg = "";
+        }
     }
 }

@@ -22,31 +22,28 @@ public class MainMenu : MonoBehaviour {
    [SerializeField] private TMP_InputField usernameField;
    [SerializeField] private TMP_InputField IPField;
    [SerializeField] private Canvas canvas;
-   private GameObject popup;
+   [SerializeField] public GameObject popup;
 
    private void Awake() {
       Singleton = this;
-      SetupPopup();
    }
 
-   private void SetupPopup() {
-      popup = Instantiate(Resources.Load("Prefabs/Popup") as GameObject);
-      popup.SetActive(false);
-      popup.transform.SetParent(canvas.transform, false);
-      
-      // Make ok button functional
-      Transform okBtn = popup.transform.Find("okBtn");
-      okBtn.gameObject.GetComponent<Button>().onClick.AddListener(PopupHandler);
-   }
-
-   private void PopupHandler() {
-      // This method is called when the popup is closed
-
+   public void OkClicked() {
       // Make the popup inactive
       popup.SetActive(false);
 
       // Make all inputs and buttons interactable again
       canvas.GetComponent<CanvasGroup>().interactable = true;
+   }
+
+   public void DisplayPopup(string message) {
+      // Make all inputs and buttons greyed out
+      canvas.GetComponent<CanvasGroup>().interactable = false;
+
+      // Display the popup
+      popup.SetActive(true);
+      Transform errorText = popup.transform.Find("ErrorText");
+      errorText.GetComponent<TextMeshProUGUI>().SetText(message);
    }
 
    public void StartClicked() {
@@ -55,14 +52,7 @@ public class MainMenu : MonoBehaviour {
 
       // Make sure user has not left username blank
       if (string.IsNullOrEmpty(username)) {
-         // Make all inputs and buttons greyed out
-         canvas.GetComponent<CanvasGroup>().interactable = false;
-
-         // Display the popup
-         popup.SetActive(true);
-         Transform errorText = popup.transform.Find("ErrorText");
-         errorText.GetComponent<TextMeshProUGUI>().SetText("You have not entered a username");
-
+         DisplayPopup("You have not entered a username");
          return;
       }
 
