@@ -31,7 +31,7 @@ public class Player : MonoBehaviour {
         DontDestroyOnLoad(player);
         List.Add(id, player);
         if (SceneManager.GetActiveScene().name == "GameLobby") {
-            GameLobbyMenu.Singleton.UpdatePlayerCount();
+            GameLobbyMenu.Singleton.UpdateLobbyMenu();
         }
 
         if (alert_others) {

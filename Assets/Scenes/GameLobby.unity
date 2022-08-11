@@ -1546,7 +1546,8 @@ MonoBehaviour:
   playerCount: {fileID: 2009861035}
   playerNames: {fileID: 220260029}
   IP: {fileID: 1795790346}
-  MapName: {fileID: 1534090125}
+  mapName: {fileID: 1534090125}
+  startBtnText: {fileID: 1533358477}
   startBtn: {fileID: 2045615899}
 --- !u!4 &1500094840
 Transform:

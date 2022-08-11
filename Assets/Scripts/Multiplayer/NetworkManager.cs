@@ -119,7 +119,7 @@ public class NetworkManager : MonoBehaviour {
         Destroy(Player.List[e.Id].gameObject);
         Player.List.Remove(e.Id);
         if (SceneManager.GetActiveScene().name == "GameLobby") {
-            GameLobbyMenu.Singleton.UpdatePlayerCount();
+            GameLobbyMenu.Singleton.UpdateLobbyMenu();
         }
     }
 
