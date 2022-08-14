@@ -92,6 +92,21 @@ public class Player : MonoBehaviour {
         NetworkManager.Singleton.SetChosenMap(mapName);
     }
 
+    [MessageHandler((ushort)MessageId.usernameTaken)]
+    private static void UsernameTaken(Message message) {
+        if (message.GetBool()) {
+            NetworkManager.Singleton.Client.Disconnect();
+            foreach (Player player in Player.List.Values) {
+                Destroy(player.gameObject);
+            }
+            Player.List.Clear();
+            
+            MainMenu.Singleton.DisplayPopup("Username already taken");
+        } else {
+            SceneManager.LoadScene("GameLobby");
+        }
+    }
+
     /*
      * Server handling methods
      *
@@ -99,8 +114,26 @@ public class Player : MonoBehaviour {
     [MessageHandler((ushort)MessageId.addPlayer)]
     private static void AddPlayer(ushort fromClientId, Message message) {
         // When the server receives a username/Id from a client
-
+        Message errorMsg;
         string toClientId = message.GetString();
+        ushort _ = message.GetUShort();
+        string username = message.GetString();
+
+        // Check the username is not already in use
+        foreach (Player player in List.Values) {
+            if (player.username == username && player.Id != fromClientId) {
+                // Tell this user their name has been taken
+                errorMsg = Message.Create(MessageSendMode.reliable, MessageId.usernameTaken);
+                errorMsg.AddBool(true);
+                NetworkManager.Singleton.Server.Send(errorMsg, fromClientId);
+                return;
+            }
+        }
+
+        // Tell this user their name has not been taken
+        errorMsg = Message.Create(MessageSendMode.reliable, MessageId.usernameTaken);
+        errorMsg.AddBool(false);
+        NetworkManager.Singleton.Server.Send(errorMsg, fromClientId);
 
         if (toClientId == "") {
             // Go through every current player already connected

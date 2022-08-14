@@ -7,7 +7,8 @@ using UnityEngine.SceneManagement;
 
 internal enum MessageId : ushort {
     addPlayer = 1,
-    sendMap
+    sendMap,
+    usernameTaken
 }
 
 public class NetworkManager : MonoBehaviour {
@@ -52,7 +53,9 @@ public class NetworkManager : MonoBehaviour {
 
     public void SetChosenMap(string mapName) {
         chosenMap = mapName;
-        GameLobbyMenu.Singleton.SetMapName(mapName);
+        if (GameLobbyMenu.Singleton != null) {
+            GameLobbyMenu.Singleton.SetMapName(mapName);
+        }
     }
 
     private void Start() {
@@ -105,7 +108,6 @@ public class NetworkManager : MonoBehaviour {
 
     private void DidConnect(object sender, EventArgs e) {
         Player.AddPlayer(Client.Id, MainMenu.Singleton.getUsername(), true);
-        SceneManager.LoadScene("GameLobby");
     }
 
     private void FailedToConnect(object sender, EventArgs e) {
@@ -118,16 +120,19 @@ public class NetworkManager : MonoBehaviour {
     }
 
     private void PlayerLeft(object sender, ClientDisconnectedEventArgs e) {
-        Destroy(Player.List[e.Id].gameObject);
-        Player.List.Remove(e.Id);
-        if (SceneManager.GetActiveScene().name == "GameLobby") {
-            GameLobbyMenu.Singleton.UpdateLobbyMenu();
+        // Player may have been disconnected without being added to list of players
+        if (Player.List.ContainsKey(e.Id)) {
+            Destroy(Player.List[e.Id].gameObject);
+            Player.List.Remove(e.Id);
+            if (SceneManager.GetActiveScene().name == "GameLobby") {
+                GameLobbyMenu.Singleton.UpdateLobbyMenu();
+            }
         }
     }
 
     private void DidDisconnect(object sender, EventArgs e) {
-        ReturnToMainMenu();
         popupMsg = "You were disconnected from the server";
+        ReturnToMainMenu();
     }
 
     private void ReturnToMainMenu() {
