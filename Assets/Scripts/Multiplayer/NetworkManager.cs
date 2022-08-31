@@ -8,7 +8,8 @@ using UnityEngine.SceneManagement;
 internal enum MessageId : ushort {
     addPlayer = 1,
     sendMap,
-    usernameTaken
+    usernameTaken,
+    start
 }
 
 public class NetworkManager : MonoBehaviour {

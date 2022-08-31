@@ -72,6 +72,12 @@ public class Player : MonoBehaviour {
         NetworkManager.Singleton.Server.Send(message, toClientId);
     }
 
+    public static void SendStart() {
+        // Send the message that the game is starting to every client
+        Message message = Message.Create(MessageSendMode.reliable, MessageId.start);
+        NetworkManager.Singleton.Server.SendToAll(message);
+    }
+
     /*
      * Client handling methods
      *
@@ -105,6 +111,15 @@ public class Player : MonoBehaviour {
         } else {
             SceneManager.LoadScene("GameLobby");
         }
+    }
+
+    [MessageHandler((ushort)MessageId.start)]
+    private static void ReceiveStart(Message message) {
+        // The client has received info that the game has started
+        SceneManager.LoadScene(NetworkManager.Singleton.GetChosenMap());
+
+        // When the scene is loaded, the gameManager object in that level will handle
+        // spawning in players
     }
 
     /*

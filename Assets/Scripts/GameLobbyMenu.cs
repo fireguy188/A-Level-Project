@@ -81,4 +81,8 @@ public class GameLobbyMenu : MonoBehaviour {
             }
         }
     }
+
+    public void StartClicked() {
+        Player.SendStart();
+    }
 }
