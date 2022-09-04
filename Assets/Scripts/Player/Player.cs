@@ -12,6 +12,7 @@ public class Player : MonoBehaviour {
     public bool ingame;
     private float jumpForce = 7f;
     private bool[] inputs = {false};
+    private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
 
     private void OnDestroy() {
         List.Remove(Id);
@@ -28,12 +29,21 @@ public class Player : MonoBehaviour {
     }
 
     private void FixedUpdate() {
+        // Handle own movements
         if (inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
             GetComponent<Rigidbody>().AddForce(transform.up * jumpForce, ForceMode.Impulse);
             SendJump();
         }
 
         inputs[0] = false;
+
+        // Handle others movements
+        // The jumpers dictionary stores player ids with the jumpForces they have
+        foreach (ushort id in jumpers.Keys) {
+            List[id].GetComponent<Rigidbody>().AddForce(transform.up * jumpers[id], ForceMode.Impulse);
+        }
+
+        jumpers.Clear();
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -171,7 +181,8 @@ public class Player : MonoBehaviour {
         ushort id = message.GetUShort();
         float jumpForce = message.GetFloat();
 
-        Player.List[id].GetComponent<Rigidbody>().AddForce(Player.List[id].transform.up * jumpForce, ForceMode.Impulse);
+        //Player.List[id].GetComponent<Rigidbody>().AddForce(Player.List[id].transform.up * jumpForce, ForceMode.Impulse);
+        jumpers[id] = jumpForce;
     }
 
     /*
