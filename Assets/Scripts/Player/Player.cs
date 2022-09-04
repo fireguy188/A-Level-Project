@@ -10,7 +10,8 @@ public class Player : MonoBehaviour {
     public ushort Id;
     public string username;
     public bool ingame;
-    public int jumpForce = 200;
+    private float jumpForce = 7f;
+    private bool[] inputs = {false};
 
     private void OnDestroy() {
         List.Remove(Id);
@@ -19,12 +20,20 @@ public class Player : MonoBehaviour {
     private void Update() {
         if (ingame && Id == NetworkManager.Singleton.Client.Id) {
             if (Input.GetKey(KeyCode.Space)) {
-                GetComponent<Rigidbody>().AddForce(transform.up * jumpForce);
-                SendJump();
+                inputs[0] = true;
             }
 
             SendRotation();
         }
+    }
+
+    private void FixedUpdate() {
+        if (inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
+            GetComponent<Rigidbody>().AddForce(transform.up * jumpForce, ForceMode.Impulse);
+            SendJump();
+        }
+
+        inputs[0] = false;
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -76,7 +85,7 @@ public class Player : MonoBehaviour {
 
     public void SendJump() {
         Message message = Message.Create(MessageSendMode.reliable, MessageId.sendJump);
-        message.AddInt(jumpForce);
+        message.AddFloat(jumpForce);
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -160,9 +169,9 @@ public class Player : MonoBehaviour {
     [MessageHandler((ushort)MessageId.sendJump)]
     private static void ReceiveJump(Message message) {
         ushort id = message.GetUShort();
-        int jumpForce = message.GetInt();
+        float jumpForce = message.GetFloat();
 
-        Player.List[id].GetComponent<Rigidbody>().AddForce(Player.List[id].transform.up * jumpForce);
+        Player.List[id].GetComponent<Rigidbody>().AddForce(Player.List[id].transform.up * jumpForce, ForceMode.Impulse);
     }
 
     /*
@@ -226,11 +235,11 @@ public class Player : MonoBehaviour {
 
     [MessageHandler((ushort)MessageId.sendJump)]
     private static void ReceiveJump(ushort fromClientId, Message message) {
-        int jumpForce = message.GetInt();
+        float jumpForce = message.GetFloat();
 
         Message msg = Message.Create(MessageSendMode.reliable, MessageId.sendJump);
         msg.AddUShort(fromClientId);
-        msg.AddInt(jumpForce);
+        msg.AddFloat(jumpForce);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {

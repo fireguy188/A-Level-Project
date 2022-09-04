@@ -8,10 +8,12 @@ public class GameManager : MonoBehaviour {
         foreach (Player player in Player.List.Values) {
             // Get the player's spawn location
             Vector3 spawnLoc = GameObject.Find($"p{player.Id}spawn").transform.position;
+            Quaternion spawnRot = GameObject.Find($"p{player.Id}spawn").transform.rotation;
 
             // Then get the RigidBody model of that player and set its spawn position
             player.GetComponent<Rigidbody>().velocity = Vector3.zero;
             player.GetComponent<Rigidbody>().position = spawnLoc;
+            player.GetComponent<Rigidbody>().transform.rotation = spawnRot;
             player.ingame = true;
 
             // If this is this player's character, enable the camera

@@ -12,6 +12,9 @@ public class PlayerCam : MonoBehaviour {
     private void Start() {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+
+        xRotation = transform.parent.rotation.x * 180;
+        yRotation = transform.parent.rotation.y * 180;
     }
 
     private void Update() {
