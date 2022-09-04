@@ -10,7 +10,9 @@ internal enum MessageId : ushort {
     sendMap,
     usernameTaken,
     start,
-    sendRotation
+    sendRotation,
+    sendJump,
+    sendPosition
 }
 
 public class NetworkManager : MonoBehaviour {

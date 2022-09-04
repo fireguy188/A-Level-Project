@@ -2,9 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
-{
-
+public class GameManager : MonoBehaviour {
     private void Awake() {
         // Spawn in the players
         foreach (Player player in Player.List.Values) {
@@ -21,10 +19,5 @@ public class GameManager : MonoBehaviour
                 player.gameObject.transform.Find("Camera").gameObject.SetActive(true);
             }
         }
-    }
-
-    // Update is called once per frame
-    private void Update() {
-        
     }
 }
