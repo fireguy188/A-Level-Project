@@ -12,7 +12,8 @@ internal enum MessageId : ushort {
     start,
     sendRotation,
     sendJump,
-    sendPosition
+    sendPosition,
+    sync
 }
 
 public class NetworkManager : MonoBehaviour {
@@ -35,6 +36,7 @@ public class NetworkManager : MonoBehaviour {
     private string chosenMap;
     private string popupMsg;
 
+    public int tick = 0;
     public GameObject playerPrefab;
     public GameObject localPlayerPrefab;
 
@@ -83,6 +85,7 @@ public class NetworkManager : MonoBehaviour {
         }
         
         Client.Tick();
+        tick++;
     }
 
     private void OnApplicationQuit() {

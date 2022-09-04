@@ -48,7 +48,7 @@ public class MainMenu : MonoBehaviour {
 
    public void StartClicked() {
       string IP = IPField.GetComponent<TMP_InputField>().text;
-      string username = usernameField.GetComponent<TMP_InputField>().text;
+      string username = usernameField.GetComponent<TMP_InputField>().text.Trim();
 
       // Make sure user has not left username blank
       if (string.IsNullOrEmpty(username)) {

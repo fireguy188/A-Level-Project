@@ -10,6 +10,8 @@ public class Player : MonoBehaviour {
     public ushort Id;
     public string username;
     public bool ingame;
+    public Rigidbody model;
+
     private float jumpForce = 7f;
     private bool[] inputs = {false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
@@ -31,7 +33,7 @@ public class Player : MonoBehaviour {
     private void FixedUpdate() {
         // Handle own movements
         if (inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
-            GetComponent<Rigidbody>().AddForce(transform.up * jumpForce, ForceMode.Impulse);
+            model.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             SendJump();
         }
 
@@ -40,10 +42,15 @@ public class Player : MonoBehaviour {
         // Handle others movements
         // The jumpers dictionary stores player ids with the jumpForces they have
         foreach (ushort id in jumpers.Keys) {
-            List[id].GetComponent<Rigidbody>().AddForce(transform.up * jumpers[id], ForceMode.Impulse);
+            List[id].model.AddForce(Vector3.up * jumpers[id], ForceMode.Impulse);
         }
 
         jumpers.Clear();
+
+        // Send sync message every 50 ticks
+        if (ingame && Id == NetworkManager.Singleton.Client.Id && NetworkManager.Singleton.tick % 50 == 0) {
+            SendSync();
+        }
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -98,6 +105,14 @@ public class Player : MonoBehaviour {
         message.AddFloat(jumpForce);
         NetworkManager.Singleton.Client.Send(message);
     }
+
+    public void SendSync() {
+        Message message = Message.Create(MessageSendMode.reliable, MessageId.sync);
+        message.AddVector3(model.velocity);
+        message.AddVector3(model.position);
+        message.AddQuaternion(model.rotation);
+        NetworkManager.Singleton.Client.Send(message);
+    } 
 
     
     /*
@@ -173,7 +188,7 @@ public class Player : MonoBehaviour {
         ushort id = message.GetUShort();
         Quaternion rotation = message.GetQuaternion();
 
-        Player.List[id].transform.rotation = rotation;
+        List[id].transform.rotation = rotation;
     }
 
     [MessageHandler((ushort)MessageId.sendJump)]
@@ -183,6 +198,21 @@ public class Player : MonoBehaviour {
 
         //Player.List[id].GetComponent<Rigidbody>().AddForce(Player.List[id].transform.up * jumpForce, ForceMode.Impulse);
         jumpers[id] = jumpForce;
+    }
+    
+    [MessageHandler((ushort)MessageId.sync)]
+    private static void ReceiveSync(Message message) {
+        ushort id = message.GetUShort();
+        Vector3 vel = message.GetVector3();
+        Vector3 pos = message.GetVector3();
+        Quaternion rot = message.GetQuaternion();
+
+        Debug.Log(List[id].transform.position);
+        List[id].model.velocity = vel;
+        List[id].transform.position = pos;
+        List[id].transform.rotation = rot;
+        Debug.Log(List[id].transform.position);
+        Debug.Log("new");
     }
 
     /*
@@ -251,6 +281,25 @@ public class Player : MonoBehaviour {
         Message msg = Message.Create(MessageSendMode.reliable, MessageId.sendJump);
         msg.AddUShort(fromClientId);
         msg.AddFloat(jumpForce);
+
+        foreach (ushort id in List.Keys) {
+            if (id != fromClientId) {
+                NetworkManager.Singleton.Server.Send(msg, id);
+            }
+        }
+    }
+
+    [MessageHandler((ushort)MessageId.sync)]
+    private static void ReceiveSync(ushort fromClientId, Message message) {
+        Vector3 vel = message.GetVector3();
+        Vector3 pos = message.GetVector3();
+        Quaternion rot = message.GetQuaternion();
+
+        Message msg = Message.Create(MessageSendMode.reliable, MessageId.sync);
+        msg.AddUShort(fromClientId);
+        msg.AddVector3(vel);
+        msg.AddVector3(pos);
+        msg.AddQuaternion(rot);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {

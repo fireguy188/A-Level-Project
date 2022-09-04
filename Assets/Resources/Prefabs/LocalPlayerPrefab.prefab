@@ -149,7 +149,7 @@ MonoBehaviour:
   Id: 0
   username: 
   ingame: 0
-  jumpForce: 2
+  model: {fileID: 6348843831302541116}
 --- !u!54 &6348843831302541116
 Rigidbody:
   m_ObjectHideFlags: 0
