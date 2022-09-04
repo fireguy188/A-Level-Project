@@ -14,11 +14,17 @@ public class GameManager : MonoBehaviour
             // Then get the RigidBody model of that player and set its spawn position
             player.GetComponent<Rigidbody>().velocity = Vector3.zero;
             player.GetComponent<Rigidbody>().position = spawnLoc;
+            player.ingame = true;
+
+            // If this is this player's character, enable the camera
+            if (player.Id == NetworkManager.Singleton.Client.Id) {
+                player.gameObject.transform.Find("Camera").gameObject.SetActive(true);
+            }
         }
     }
 
     // Update is called once per frame
-    void Update() {
+    private void Update() {
         
     }
 }

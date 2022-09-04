@@ -10,9 +10,16 @@ public class Player : MonoBehaviour {
     public ushort Id;
     public string username;
     public bool ingame;
+    public Transform orientation;
 
     private void OnDestroy() {
         List.Remove(Id);
+    }
+
+    private void Update() {
+        if (ingame) {
+            SendRotation();
+        }
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -50,6 +57,15 @@ public class Player : MonoBehaviour {
         message.AddString(toClientId);
         message.AddUShort(Id);
         message.AddString(username);
+        NetworkManager.Singleton.Client.Send(message);
+    }
+
+    public void SendRotation() {
+        // This message will be sent many times per second so the messages can be unreliable
+        Message message = Message.Create(MessageSendMode.unreliable, MessageId.sendRotation);
+
+        // The important part: sending the orientation of the players
+        message.AddQuaternion(orientation.rotation);
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -122,6 +138,14 @@ public class Player : MonoBehaviour {
         // spawning in players
     }
 
+    [MessageHandler((ushort)MessageId.sendRotation)]
+    private static void ReceiveRotation(Message message) {
+        ushort id = message.GetUShort();
+        Quaternion rotation = message.GetQuaternion();
+
+        Player.List[id].orientation.rotation = rotation;
+    }
+
     /*
      * Server handling methods
      *
@@ -163,6 +187,21 @@ public class Player : MonoBehaviour {
             SendMap(fromClientId);
         } else {
             NetworkManager.Singleton.Server.Send(message, ushort.Parse(toClientId));
+        }
+    }
+
+    [MessageHandler((ushort)MessageId.sendRotation)]
+    private static void ReceiveRotation(ushort fromClientId, Message message) {
+        Quaternion rotation = message.GetQuaternion();
+
+        Message msg = Message.Create(MessageSendMode.unreliable, MessageId.sendRotation);
+        msg.AddUShort(fromClientId);
+        msg.AddQuaternion(rotation);
+
+        foreach (ushort id in List.Keys) {
+            if (id != fromClientId) {
+                NetworkManager.Singleton.Server.Send(msg, id);
+            }
         }
     }
 }
