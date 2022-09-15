@@ -12,6 +12,7 @@ public class Player : MonoBehaviour {
     public bool ingame;
     public Rigidbody model;
     public GameObject grapple_hook;
+    public GameObject cam;
 
     private float jumpForce = 7f;
     private bool[] inputs = {false, false};
@@ -32,7 +33,7 @@ public class Player : MonoBehaviour {
                 inputs[1] = true;
             }
 
-            SendRotation();
+            SendModelDetails();
         }
     }
 
@@ -104,12 +105,17 @@ public class Player : MonoBehaviour {
         NetworkManager.Singleton.Client.Send(message);
     }
 
-    public void SendRotation() {
+    public void SendModelDetails() {
         // This message will be sent many times per second so the messages can be unreliable
-        Message message = Message.Create(MessageSendMode.unreliable, MessageId.sendRotation);
+        Message message = Message.Create(MessageSendMode.unreliable, MessageId.sendModelDetails);
 
         // The important part: sending the orientation of the players
         message.AddQuaternion(transform.rotation);
+
+        // Adding grapple hook details
+        message.AddVector3(grapple_hook.transform.position);
+        message.AddQuaternion(grapple_hook.transform.rotation);
+        message.AddQuaternion(cam.transform.localRotation);
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -123,7 +129,6 @@ public class Player : MonoBehaviour {
         Message message = Message.Create(MessageSendMode.reliable, MessageId.sync);
         message.AddVector3(model.velocity);
         message.AddVector3(model.position);
-        message.AddQuaternion(model.rotation);
         NetworkManager.Singleton.Client.Send(message);
     } 
 
@@ -196,12 +201,18 @@ public class Player : MonoBehaviour {
         // spawning in players
     }
 
-    [MessageHandler((ushort)MessageId.sendRotation)]
-    private static void ReceiveRotation(Message message) {
+    [MessageHandler((ushort)MessageId.sendModelDetails)]
+    private static void ReceiveModelDetails(Message message) {
         ushort id = message.GetUShort();
         Quaternion rotation = message.GetQuaternion();
 
+        Vector3 grapple_position = message.GetVector3();
+        Quaternion grapple_rotation = message.GetQuaternion();
+        Quaternion cam_rotation = message.GetQuaternion();
+
         List[id].transform.rotation = rotation;
+        List[id].grapple_hook.GetComponent<GrappleHook>().SetPositionRotation(grapple_position, grapple_rotation);
+        List[id].cam.transform.localRotation = cam_rotation;
     }
 
     [MessageHandler((ushort)MessageId.sendJump)]
@@ -217,14 +228,9 @@ public class Player : MonoBehaviour {
         ushort id = message.GetUShort();
         Vector3 vel = message.GetVector3();
         Vector3 pos = message.GetVector3();
-        Quaternion rot = message.GetQuaternion();
 
-        Debug.Log(List[id].transform.position);
         List[id].model.velocity = vel;
         List[id].transform.position = pos;
-        List[id].transform.rotation = rot;
-        Debug.Log(List[id].transform.position);
-        Debug.Log("new");
     }
 
     /*
@@ -271,13 +277,21 @@ public class Player : MonoBehaviour {
         }
     }
 
-    [MessageHandler((ushort)MessageId.sendRotation)]
-    private static void ReceiveRotation(ushort fromClientId, Message message) {
+    [MessageHandler((ushort)MessageId.sendModelDetails)]
+    private static void ReceiveModelDetails(ushort fromClientId, Message message) {
         Quaternion rotation = message.GetQuaternion();
 
-        Message msg = Message.Create(MessageSendMode.unreliable, MessageId.sendRotation);
+        Vector3 grapple_position = message.GetVector3();
+        Quaternion grapple_rotation = message.GetQuaternion();
+        Quaternion cam_rotation = message.GetQuaternion();
+
+        Message msg = Message.Create(MessageSendMode.unreliable, MessageId.sendModelDetails);
         msg.AddUShort(fromClientId);
         msg.AddQuaternion(rotation);
+
+        msg.AddVector3(grapple_position);
+        msg.AddQuaternion(grapple_rotation);
+        msg.AddQuaternion(cam_rotation);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {
@@ -305,13 +319,11 @@ public class Player : MonoBehaviour {
     private static void ReceiveSync(ushort fromClientId, Message message) {
         Vector3 vel = message.GetVector3();
         Vector3 pos = message.GetVector3();
-        Quaternion rot = message.GetQuaternion();
 
         Message msg = Message.Create(MessageSendMode.reliable, MessageId.sync);
         msg.AddUShort(fromClientId);
         msg.AddVector3(vel);
         msg.AddVector3(pos);
-        msg.AddQuaternion(rot);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {

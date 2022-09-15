@@ -10,9 +10,8 @@ internal enum MessageId : ushort {
     sendMap,
     usernameTaken,
     start,
-    sendRotation,
+    sendModelDetails,
     sendJump,
-    sendPosition,
     sync
 }
 

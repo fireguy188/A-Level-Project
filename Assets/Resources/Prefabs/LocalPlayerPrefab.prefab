@@ -214,6 +214,7 @@ MonoBehaviour:
   ingame: 0
   model: {fileID: 6348843831302541116}
   grapple_hook: {fileID: 7943001681846180110}
+  cam: {fileID: 156650737844726450}
 --- !u!54 &6348843831302541116
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1599,7 +1600,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   grapplehook_loc: {fileID: 9108179891194783382}
-  cam: {fileID: 4865963722768195265}
 --- !u!1 &8119619687945634476
 GameObject:
   m_ObjectHideFlags: 0
