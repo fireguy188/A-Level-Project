@@ -11,9 +11,13 @@ public class GameManager : MonoBehaviour {
             Quaternion spawnRot = GameObject.Find($"p{player.Id}spawn").transform.rotation;
 
             // Then get the RigidBody model of that player and set its spawn position
-            player.GetComponent<Rigidbody>().velocity = Vector3.zero;
-            player.GetComponent<Rigidbody>().position = spawnLoc;
-            player.GetComponent<Rigidbody>().transform.rotation = spawnRot;
+            player.model.velocity = Vector3.zero;
+            player.model.transform.position = spawnLoc;
+            player.model.transform.rotation = spawnRot;
+
+            // Also get the model of the grappling hook and set its spawn position
+            // player.grapple_hook.transform.parent = player.transform.Find("grapplehook_loc");
+            // player.grapple_hook.transform.position.Set(0, 0, 5);
             player.ingame = true;
 
             // If this is this player's character, enable the camera

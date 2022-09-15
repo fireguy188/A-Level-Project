@@ -11,10 +11,12 @@ public class Player : MonoBehaviour {
     public string username;
     public bool ingame;
     public Rigidbody model;
+    public GameObject grapple_hook;
 
     private float jumpForce = 7f;
-    private bool[] inputs = {false};
+    private bool[] inputs = {false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
+    private static Dictionary<ushort, float> start_grapplers = new Dictionary<ushort, float>();
 
     private void OnDestroy() {
         List.Remove(Id);
@@ -24,6 +26,10 @@ public class Player : MonoBehaviour {
         if (ingame && Id == NetworkManager.Singleton.Client.Id) {
             if (Input.GetKey(KeyCode.Space)) {
                 inputs[0] = true;
+            }
+
+            if (Input.GetKey(KeyCode.E)) {
+                inputs[1] = true;
             }
 
             SendRotation();
@@ -38,6 +44,13 @@ public class Player : MonoBehaviour {
         }
 
         inputs[0] = false;
+
+        // If the player wants to start grappling
+        if (inputs[1]) {
+
+        }
+
+        inputs[1] = false;
 
         // Handle others movements
         // The jumpers dictionary stores player ids with the jumpForces they have
@@ -196,7 +209,6 @@ public class Player : MonoBehaviour {
         ushort id = message.GetUShort();
         float jumpForce = message.GetFloat();
 
-        //Player.List[id].GetComponent<Rigidbody>().AddForce(Player.List[id].transform.up * jumpForce, ForceMode.Impulse);
         jumpers[id] = jumpForce;
     }
     
