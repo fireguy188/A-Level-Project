@@ -13,14 +13,22 @@ public class Player : MonoBehaviour {
     public Rigidbody model;
     public GameObject grapple_hook;
     public GameObject cam;
+    private Rigidbody grapple_hook_model;
+    private GrappleHook grapple_hook_script;
 
-    private float jumpForce = 7f;
+    public float jumpForce = 7f;
+    private float grappleHookSpeed = 50f;
     private bool[] inputs = {false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
     private static Dictionary<ushort, float> start_grapplers = new Dictionary<ushort, float>();
 
     private void OnDestroy() {
         List.Remove(Id);
+    }
+
+    private void Start() {
+        grapple_hook_model = grapple_hook.GetComponent<Rigidbody>();
+        grapple_hook_script = grapple_hook.GetComponent<GrappleHook>();
     }
 
     private void Update() {
@@ -48,7 +56,19 @@ public class Player : MonoBehaviour {
 
         // If the player wants to start grappling
         if (inputs[1]) {
+            if (!grapple_hook_script.grappling) {
+                RaycastHit grapplePoint;
+                Ray ray = cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+                Physics.Raycast(ray, out grapplePoint);
 
+                Vector3 grappleDirection = (grapplePoint.point - grapple_hook_script.grapplehook_loc.position);
+                grapple_hook_model.velocity = grappleDirection.normalized * grappleHookSpeed;
+                grapple_hook_model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
+                grapple_hook_script.grappling = true;
+                grapple_hook.transform.parent = null;
+            } else {
+                // Stop grappling process
+            }
         }
 
         inputs[1] = false;
