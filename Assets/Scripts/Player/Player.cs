@@ -1,4 +1,5 @@
 using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,14 +14,15 @@ public class Player : MonoBehaviour {
     public Rigidbody model;
     public GameObject grapple_hook;
     public GameObject cam;
+    public LineRenderer lineRenderer;
     private Rigidbody grapple_hook_model;
     private GrappleHook grapple_hook_script;
 
-    public float jumpForce = 7f;
+    private float jumpForce = 7f;
     private float grappleHookSpeed = 50f;
     private bool[] inputs = {false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
-    private static Dictionary<ushort, float> start_grapplers = new Dictionary<ushort, float>();
+    private static Dictionary<ushort, Tuple<Vector3, float>> startGrapplers = new Dictionary<ushort, Tuple<Vector3, float>>();
 
     private void OnDestroy() {
         List.Remove(Id);
@@ -32,6 +34,16 @@ public class Player : MonoBehaviour {
     }
 
     private void Update() {
+        // Draw line for grappling hook
+        if (grapple_hook_script.grappling) {
+            lineRenderer.SetPosition(0, grapple_hook_script.grapplehook_loc.position);
+            lineRenderer.SetPosition(1, grapple_hook_model.position);
+        } else {
+            // If they aren't grappling, make sure a line doesn't appear
+            lineRenderer.SetPosition(0, Vector3.zero);
+            lineRenderer.SetPosition(1, Vector3.zero);
+        }
+
         if (ingame && Id == NetworkManager.Singleton.Client.Id) {
             if (Input.GetKey(KeyCode.Space)) {
                 inputs[0] = true;
@@ -62,10 +74,8 @@ public class Player : MonoBehaviour {
                 Physics.Raycast(ray, out grapplePoint);
 
                 Vector3 grappleDirection = (grapplePoint.point - grapple_hook_script.grapplehook_loc.position);
-                grapple_hook_model.velocity = grappleDirection.normalized * grappleHookSpeed;
-                grapple_hook_model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
-                grapple_hook_script.grappling = true;
-                grapple_hook.transform.parent = null;
+                Grapple1(grappleDirection, grappleHookSpeed);
+                SendStartGrapple(grappleDirection, grappleHookSpeed);
             } else {
                 // Stop grappling process
             }
@@ -81,10 +91,21 @@ public class Player : MonoBehaviour {
 
         jumpers.Clear();
 
-        // Send sync message every 50 ticks
-        if (ingame && Id == NetworkManager.Singleton.Client.Id && NetworkManager.Singleton.tick % 50 == 0) {
-            SendSync();
+        foreach (ushort id in startGrapplers.Keys) {
+            Vector3 grappleDirection = startGrapplers[id].Item1;
+            float grappleHookSpeed = startGrapplers[id].Item2;
+            List[id].Grapple1(grappleDirection, grappleHookSpeed);
         }
+
+        startGrapplers.Clear();
+    }
+
+    // First step of grappling, shooting the grapple hook out
+    public void Grapple1(Vector3 grappleDirection, float grappleHookSpeed) {
+        grapple_hook_model.velocity = grappleDirection.normalized * grappleHookSpeed;
+        grapple_hook_model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
+        grapple_hook_script.grappling = true;
+        grapple_hook.transform.parent = null;
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -150,7 +171,14 @@ public class Player : MonoBehaviour {
         message.AddVector3(model.velocity);
         message.AddVector3(model.position);
         NetworkManager.Singleton.Client.Send(message);
-    } 
+    }
+
+    public void SendStartGrapple(Vector3 grappleDirection, float grappleHookSpeed) {
+        Message message = Message.Create(MessageSendMode.reliable, MessageId.startGrapple);
+        message.AddVector3(grappleDirection);
+        message.AddFloat(grappleHookSpeed);
+        NetworkManager.Singleton.Client.Send(message);
+    }
 
     
     /*
@@ -252,6 +280,15 @@ public class Player : MonoBehaviour {
         List[id].model.velocity = vel;
         List[id].transform.position = pos;
     }
+    
+    [MessageHandler((ushort)MessageId.startGrapple)]
+    private static void ReceiveStartGrapple(Message message) {
+        ushort id = message.GetUShort();
+        Vector3 grappleDirection = message.GetVector3();
+        float grappleHookSpeed = message.GetFloat();
+
+        startGrapplers[id] = Tuple.Create<Vector3, float>(grappleDirection, grappleHookSpeed);
+    }
 
     /*
      * Server handling methods
@@ -344,6 +381,23 @@ public class Player : MonoBehaviour {
         msg.AddUShort(fromClientId);
         msg.AddVector3(vel);
         msg.AddVector3(pos);
+
+        foreach (ushort id in List.Keys) {
+            if (id != fromClientId) {
+                NetworkManager.Singleton.Server.Send(msg, id);
+            }
+        }
+    }
+
+    [MessageHandler((ushort)MessageId.startGrapple)]
+    private static void ReceiveStartGrapple(ushort fromClientId, Message message) {
+        Vector3 grappleDirection = message.GetVector3();
+        float grappleHookSpeed = message.GetFloat();
+
+        Message msg = Message.Create(MessageSendMode.reliable, MessageId.startGrapple);
+        msg.AddUShort(fromClientId);
+        msg.AddVector3(grappleDirection);
+        msg.AddFloat(grappleHookSpeed);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {

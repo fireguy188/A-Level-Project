@@ -12,7 +12,8 @@ internal enum MessageId : ushort {
     start,
     sendModelDetails,
     sendJump,
-    sync
+    sync,
+    startGrapple
 }
 
 public class NetworkManager : MonoBehaviour {
