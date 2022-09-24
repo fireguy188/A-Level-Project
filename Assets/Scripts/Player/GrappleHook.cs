@@ -9,13 +9,9 @@ public class GrappleHook : MonoBehaviour {
     // Update is called once per frame
     private void Update() {
         if (!grappling) {
-            SetPositionRotation(grapplehook_loc.position, grapplehook_loc.rotation);
+            transform.position = grapplehook_loc.position;
+            transform.rotation = grapplehook_loc.rotation;
         }
-    }
-
-    public void SetPositionRotation(Vector3 newpos, Quaternion newrot) {
-        transform.position = grapplehook_loc.position;
-        transform.rotation = grapplehook_loc.rotation;
     }
 
     private void OnCollisionEnter(Collision collision) {

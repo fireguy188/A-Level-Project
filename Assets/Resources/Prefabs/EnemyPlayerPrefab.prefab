@@ -56,6 +56,8 @@ MonoBehaviour:
   grapple_hook: {fileID: 3373736981931573621}
   cam: {fileID: 5471186513059526860}
   lineRenderer: {fileID: 8655978109071005753}
+  grapple_hook_model: {fileID: 0}
+  grapple_hook_script: {fileID: 0}
 --- !u!54 &1614879908612599010
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -176,7 +178,7 @@ GameObject:
   - component: {fileID: 3488994425155811480}
   - component: {fileID: 1663450066187227771}
   - component: {fileID: 8295393504738173106}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: grapplinghook
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -372,7 +374,7 @@ GameObject:
   - component: {fileID: 2545260993117907186}
   - component: {fileID: 2191253204409666434}
   - component: {fileID: 5370578653135299983}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pasted__pasted__pCylinder3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -453,7 +455,7 @@ GameObject:
   - component: {fileID: 550824564860989923}
   - component: {fileID: 1791486971229553773}
   - component: {fileID: 4252761238790045562}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pasted__pCylinder3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -535,7 +537,7 @@ GameObject:
   - component: {fileID: 673828809390346554}
   - component: {fileID: 4645866497165256727}
   - component: {fileID: 1994606668296809852}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pTorus2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -662,7 +664,7 @@ GameObject:
   - component: {fileID: 5146954275232150566}
   - component: {fileID: 8459854457214853436}
   - component: {fileID: 6282866340456703394}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pCylinder3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -743,7 +745,7 @@ GameObject:
   - component: {fileID: 8459694727262844145}
   - component: {fileID: 8780946309340496158}
   - component: {fileID: 6583566704432527407}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pasted__pCylinder3 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -15,8 +15,8 @@ public class Player : MonoBehaviour {
     public GameObject grapple_hook;
     public GameObject cam;
     public LineRenderer lineRenderer;
-    private Rigidbody grapple_hook_model;
-    private GrappleHook grapple_hook_script;
+    public Rigidbody grapple_hook_model;
+    public GrappleHook grapple_hook_script;
 
     private float jumpForce = 7f;
     private float grappleHookSpeed = 50f;
@@ -98,6 +98,11 @@ public class Player : MonoBehaviour {
         }
 
         startGrapplers.Clear();
+
+        // Send sync message every 50 ticks
+        if (ingame && Id == NetworkManager.Singleton.Client.Id && NetworkManager.Singleton.tick % 50 == 0) {
+            SendSync();
+        }
     }
 
     // First step of grappling, shooting the grapple hook out
@@ -146,6 +151,7 @@ public class Player : MonoBehaviour {
         NetworkManager.Singleton.Client.Send(message);
     }
 
+    // Used for sending unimportant details, rotations and such and such
     public void SendModelDetails() {
         // This message will be sent many times per second so the messages can be unreliable
         Message message = Message.Create(MessageSendMode.unreliable, MessageId.sendModelDetails);
@@ -153,9 +159,6 @@ public class Player : MonoBehaviour {
         // The important part: sending the orientation of the players
         message.AddQuaternion(transform.rotation);
 
-        // Adding grapple hook details
-        message.AddVector3(grapple_hook.transform.position);
-        message.AddQuaternion(grapple_hook.transform.rotation);
         message.AddQuaternion(cam.transform.localRotation);
         NetworkManager.Singleton.Client.Send(message);
     }
@@ -166,10 +169,18 @@ public class Player : MonoBehaviour {
         NetworkManager.Singleton.Client.Send(message);
     }
 
+    // Used for sending important details
     public void SendSync() {
         Message message = Message.Create(MessageSendMode.reliable, MessageId.sync);
+
+        // Send player model details
         message.AddVector3(model.velocity);
         message.AddVector3(model.position);
+
+        // Send grapple hook model details
+        message.AddBool(grapple_hook_script.grappling);
+        message.AddVector3(grapple_hook_model.velocity);
+        message.AddVector3(grapple_hook_model.position);
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -254,12 +265,9 @@ public class Player : MonoBehaviour {
         ushort id = message.GetUShort();
         Quaternion rotation = message.GetQuaternion();
 
-        Vector3 grapple_position = message.GetVector3();
-        Quaternion grapple_rotation = message.GetQuaternion();
         Quaternion cam_rotation = message.GetQuaternion();
 
         List[id].transform.rotation = rotation;
-        List[id].grapple_hook.GetComponent<GrappleHook>().SetPositionRotation(grapple_position, grapple_rotation);
         List[id].cam.transform.localRotation = cam_rotation;
     }
 
@@ -277,8 +285,16 @@ public class Player : MonoBehaviour {
         Vector3 vel = message.GetVector3();
         Vector3 pos = message.GetVector3();
 
+        bool grappling = message.GetBool();
+        Vector3 grapple_hook_vel = message.GetVector3();
+        Vector3 grapple_hook_pos = message.GetVector3();
+
         List[id].model.velocity = vel;
         List[id].transform.position = pos;
+
+        List[id].grapple_hook_script.grappling = grappling;
+        List[id].grapple_hook_model.velocity = grapple_hook_vel;
+        List[id].grapple_hook_model.position = grapple_hook_pos;
     }
     
     [MessageHandler((ushort)MessageId.startGrapple)]
@@ -337,17 +353,11 @@ public class Player : MonoBehaviour {
     [MessageHandler((ushort)MessageId.sendModelDetails)]
     private static void ReceiveModelDetails(ushort fromClientId, Message message) {
         Quaternion rotation = message.GetQuaternion();
-
-        Vector3 grapple_position = message.GetVector3();
-        Quaternion grapple_rotation = message.GetQuaternion();
         Quaternion cam_rotation = message.GetQuaternion();
 
         Message msg = Message.Create(MessageSendMode.unreliable, MessageId.sendModelDetails);
         msg.AddUShort(fromClientId);
         msg.AddQuaternion(rotation);
-
-        msg.AddVector3(grapple_position);
-        msg.AddQuaternion(grapple_rotation);
         msg.AddQuaternion(cam_rotation);
 
         foreach (ushort id in List.Keys) {
@@ -377,10 +387,18 @@ public class Player : MonoBehaviour {
         Vector3 vel = message.GetVector3();
         Vector3 pos = message.GetVector3();
 
+        bool grappling = message.GetBool();
+        Vector3 grapple_hook_vel = message.GetVector3();
+        Vector3 grapple_hook_pos = message.GetVector3();
+
         Message msg = Message.Create(MessageSendMode.reliable, MessageId.sync);
         msg.AddUShort(fromClientId);
         msg.AddVector3(vel);
         msg.AddVector3(pos);
+
+        msg.AddBool(grappling);
+        msg.AddVector3(grapple_hook_vel);
+        msg.AddVector3(grapple_hook_pos);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {
