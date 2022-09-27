@@ -17,20 +17,42 @@ public class Player : MonoBehaviour {
     public LineRenderer lineRenderer;
     public Rigidbody grapple_hook_model;
     public GrappleHook grapple_hook_script;
+    public CapsuleCollider player_collider;
 
     private float jumpForce = 7f;
     private float grappleHookSpeed = 50f;
+    private float grapplePlayerSpeed = 30f;
     private bool[] inputs = {false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
     private static Dictionary<ushort, Tuple<Vector3, float>> startGrapplers = new Dictionary<ushort, Tuple<Vector3, float>>();
 
+    public float getGrapplePlayerSpeed() {
+        return this.grapplePlayerSpeed;
+    }
+    
     private void OnDestroy() {
+        Destroy(grapple_hook);
         List.Remove(Id);
+    }
+
+    private void OnTriggerEnter(Collider other) {
+        // Player will collide with one of the child parts of the grapple hook
+        // Check if the grapple hook they collided into was their's
+        if (other.gameObject.transform.parent != null && other.gameObject.transform.parent.gameObject == grapple_hook) {
+            model.velocity = Vector3.zero;
+            model.useGravity = true;
+            player_collider.isTrigger = false;
+            
+            grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
+            grapple_hook_script.grappling = false;
+            grapple_hook.transform.parent = cam.transform;
+        }
     }
 
     private void Start() {
         grapple_hook_model = grapple_hook.GetComponent<Rigidbody>();
         grapple_hook_script = grapple_hook.GetComponent<GrappleHook>();
+        player_collider = GetComponent<CapsuleCollider>();
     }
 
     private void Update() {
@@ -59,7 +81,7 @@ public class Player : MonoBehaviour {
 
     private void FixedUpdate() {
         // Handle own movements
-        if (inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
+        if (!grapple_hook_script.grappling && inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
             model.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             SendJump();
         }
@@ -68,7 +90,7 @@ public class Player : MonoBehaviour {
 
         // If the player wants to start grappling
         if (inputs[1]) {
-            if (!grapple_hook_script.grappling) {
+            if (!grapple_hook_script.grappling && grapple_hook_script.current_collisions == 0) {
                 RaycastHit grapplePoint;
                 Ray ray = cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
                 Physics.Raycast(ray, out grapplePoint);
@@ -109,8 +131,17 @@ public class Player : MonoBehaviour {
     public void Grapple1(Vector3 grappleDirection, float grappleHookSpeed) {
         grapple_hook_model.velocity = grappleDirection.normalized * grappleHookSpeed;
         grapple_hook_model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
+        grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotation;
         grapple_hook_script.grappling = true;
         grapple_hook.transform.parent = null;
+    }
+
+    // Second step of grappling, player goes towards grapple hook
+    public void Grapple2(Vector3 grappleDirection, float grapplePlayerSpeed) {
+        model.velocity = grappleDirection.normalized * grapplePlayerSpeed;
+        model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
+        model.useGravity = false;
+        player_collider.isTrigger = true;
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -178,6 +209,7 @@ public class Player : MonoBehaviour {
         message.AddVector3(model.position);
 
         // Send grapple hook model details
+        message.AddBool(model.useGravity);
         message.AddBool(grapple_hook_script.grappling);
         message.AddVector3(grapple_hook_model.velocity);
         message.AddVector3(grapple_hook_model.position);
@@ -285,12 +317,16 @@ public class Player : MonoBehaviour {
         Vector3 vel = message.GetVector3();
         Vector3 pos = message.GetVector3();
 
+        bool using_gravity = message.GetBool();
         bool grappling = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
 
         List[id].model.velocity = vel;
         List[id].transform.position = pos;
+
+        List[id].model.useGravity = using_gravity;
+        List[id].player_collider.isTrigger = !using_gravity;
 
         List[id].grapple_hook_script.grappling = grappling;
         List[id].grapple_hook_model.velocity = grapple_hook_vel;
@@ -387,6 +423,7 @@ public class Player : MonoBehaviour {
         Vector3 vel = message.GetVector3();
         Vector3 pos = message.GetVector3();
 
+        bool using_gravity = message.GetBool();
         bool grappling = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
@@ -396,6 +433,7 @@ public class Player : MonoBehaviour {
         msg.AddVector3(vel);
         msg.AddVector3(pos);
 
+        msg.AddBool(using_gravity);
         msg.AddBool(grappling);
         msg.AddVector3(grapple_hook_vel);
         msg.AddVector3(grapple_hook_pos);
