@@ -40,6 +40,7 @@ public class Player : MonoBehaviour {
         // Check if the grapple hook they collided into was their's
         if (other.gameObject.transform.parent != null && other.gameObject.transform.parent.gameObject == grapple_hook) {
             model.velocity = Vector3.zero;
+            transform.position = new Vector3(Mathf.Clamp(transform.position.x, -30f, 30f), Mathf.Clamp(transform.position.y, 0f, 60f), Mathf.Clamp(transform.position.z, -30f, 30f));
             model.useGravity = true;
             player_collider.isTrigger = false;
             
@@ -121,8 +122,8 @@ public class Player : MonoBehaviour {
 
         startGrapplers.Clear();
 
-        // Send sync message every 50 ticks
-        if (ingame && Id == NetworkManager.Singleton.Client.Id && NetworkManager.Singleton.tick % 50 == 0) {
+        // Send sync message every 20 ticks
+        if (ingame && Id == NetworkManager.Singleton.Client.Id && NetworkManager.Singleton.tick % 20 == 0) {
             SendSync();
         }
     }

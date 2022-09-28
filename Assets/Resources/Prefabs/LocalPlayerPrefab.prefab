@@ -804,6 +804,7 @@ MonoBehaviour:
   grapplehook_loc: {fileID: 9108179891194783382}
   grappling: 0
   player_prefab: {fileID: 359640762164420528}
+  current_collisions: 0
 --- !u!1 &8119619687945634476
 GameObject:
   m_ObjectHideFlags: 0

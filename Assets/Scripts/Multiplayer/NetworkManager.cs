@@ -129,6 +129,7 @@ public class NetworkManager : MonoBehaviour {
     private void PlayerLeft(object sender, ClientDisconnectedEventArgs e) {
         // Player may have been disconnected without being added to list of players
         if (Player.List.ContainsKey(e.Id)) {
+            Destroy(Player.List[e.Id].grapple_hook);
             Destroy(Player.List[e.Id].gameObject);
             Player.List.Remove(e.Id);
             if (SceneManager.GetActiveScene().name == "GameLobby") {
@@ -144,6 +145,7 @@ public class NetworkManager : MonoBehaviour {
 
     private void ReturnToMainMenu() {
         foreach (Player player in Player.List.Values) {
+            Destroy(player.grapple_hook);
             Destroy(player.gameObject);
         }
         Player.List.Clear();
