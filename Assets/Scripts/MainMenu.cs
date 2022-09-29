@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
@@ -49,10 +50,16 @@ public class MainMenu : MonoBehaviour {
    public void StartClicked() {
       string IP = IPField.GetComponent<TMP_InputField>().text;
       string username = usernameField.GetComponent<TMP_InputField>().text.Trim();
+      usernameField.GetComponent<TMP_InputField>().text = username;
 
       // Make sure user has not left username blank
       if (string.IsNullOrEmpty(username)) {
          DisplayPopup("You have not entered a username");
+         return;
+      }
+
+      if (username.Length > 15) {
+         DisplayPopup("Your username is too long");
          return;
       }
 
@@ -61,7 +68,15 @@ public class MainMenu : MonoBehaviour {
          NetworkManager.Singleton.StartHost();
       } else {
          // This player wants to be a client
-         NetworkManager.Singleton.JoinGame(IP);
+         IPAddress validated;
+         bool valid = IPAddress.TryParse(IP, out validated);
+
+         if (valid && validated.ToString() != "0.0.0.0") {
+            NetworkManager.Singleton.JoinGame(validated.ToString());
+         } else {
+            DisplayPopup("You have not entered a valid IP address");
+            return;
+         }
       }
 
       // Make sure user doesn't click anything else while connecting
