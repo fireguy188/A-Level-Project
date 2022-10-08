@@ -8,7 +8,12 @@ public class GrappleHook : MonoBehaviour {
     public GameObject player_prefab;
     public int current_collisions = 0;
 
-    // Update is called once per frame
+    private Player player;
+
+    private void Start() {
+        player = player_prefab.GetComponent<Player>();
+    }
+
     private void Update() {
         if (!grappling) {
             transform.position = grapplehook_loc.position;
@@ -18,12 +23,10 @@ public class GrappleHook : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision) {
         current_collisions++;
-        if (grappling) {
+        if (grappling && collision.collider != player.player_collider) {
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
 
             // Activate step 2 of grappling
-            Player player = player_prefab.GetComponent<Player>();
-
             Vector3 hitpoint = collision.contacts[0].point;
             Vector3 grappleDirection = (hitpoint - player.transform.position);
 

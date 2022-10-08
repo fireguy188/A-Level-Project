@@ -40,13 +40,12 @@ public class Player : MonoBehaviour {
         // Check if the grapple hook they collided into was their's
         if (other.gameObject.transform.parent != null && other.gameObject.transform.parent.gameObject == grapple_hook) {
             model.velocity = Vector3.zero;
-            transform.position = new Vector3(Mathf.Clamp(transform.position.x, -30f, 30f), Mathf.Clamp(transform.position.y, 0f, 60f), Mathf.Clamp(transform.position.z, -30f, 30f));
-            model.useGravity = true;
             player_collider.isTrigger = false;
-            
-            grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
-            grapple_hook_script.grappling = false;
-            grapple_hook.transform.parent = cam.transform;
+            model.constraints = RigidbodyConstraints.FreezePosition;
+
+            if (Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
+                UnGrapple();
+            }
         }
     }
 
@@ -57,6 +56,28 @@ public class Player : MonoBehaviour {
     }
 
     private void Update() {
+        if (model.velocity.x < 0.2) {
+            model.velocity.Set(0, model.velocity.y, model.velocity.z);
+        }
+
+        if (model.velocity.z < 0.2) {
+            model.velocity.Set(model.velocity.x, model.velocity.y, 0);
+        }
+
+        if (ingame && Id == NetworkManager.Singleton.Client.Id) {
+            if (Input.GetKey(KeyCode.Space)) {
+                inputs[0] = true;
+            }
+
+            if (Input.GetKeyDown(KeyCode.E)) {
+                inputs[1] = true;
+            }
+
+            SendModelDetails();
+        }
+    }
+
+    private void FixedUpdate() {
         // Draw line for grappling hook
         if (grapple_hook_script.grappling) {
             lineRenderer.SetPosition(0, grapple_hook_script.grapplehook_loc.position);
@@ -67,20 +88,6 @@ public class Player : MonoBehaviour {
             lineRenderer.SetPosition(1, Vector3.zero);
         }
 
-        if (ingame && Id == NetworkManager.Singleton.Client.Id) {
-            if (Input.GetKey(KeyCode.Space)) {
-                inputs[0] = true;
-            }
-
-            if (Input.GetKey(KeyCode.E)) {
-                inputs[1] = true;
-            }
-
-            SendModelDetails();
-        }
-    }
-
-    private void FixedUpdate() {
         // Handle own movements
         if (!grapple_hook_script.grappling && inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
             model.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
@@ -101,6 +108,8 @@ public class Player : MonoBehaviour {
                 SendStartGrapple(grappleDirection, grappleHookSpeed);
             } else {
                 // Stop grappling process
+                UnGrapple();
+                SendUnGrapple();
             }
         }
 
@@ -143,6 +152,16 @@ public class Player : MonoBehaviour {
         model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
         model.useGravity = false;
         player_collider.isTrigger = true;
+    }
+
+    public void UnGrapple() {
+        model.useGravity = true;
+        player_collider.isTrigger = false;
+        model.constraints = RigidbodyConstraints.None;
+        
+        grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
+        grapple_hook_script.grappling = false;
+        grapple_hook.transform.parent = cam.transform;
     }
 
     public static void AddPlayer(ushort id, string username, bool alert_others = false) {
@@ -212,6 +231,7 @@ public class Player : MonoBehaviour {
         // Send grapple hook model details
         message.AddBool(model.useGravity);
         message.AddBool(grapple_hook_script.grappling);
+        message.AddBool(player_collider.isTrigger);
         message.AddVector3(grapple_hook_model.velocity);
         message.AddVector3(grapple_hook_model.position);
         NetworkManager.Singleton.Client.Send(message);
@@ -221,6 +241,11 @@ public class Player : MonoBehaviour {
         Message message = Message.Create(MessageSendMode.reliable, MessageId.startGrapple);
         message.AddVector3(grappleDirection);
         message.AddFloat(grappleHookSpeed);
+        NetworkManager.Singleton.Client.Send(message);
+    }
+
+    public void SendUnGrapple() {
+        Message message = Message.Create(MessageSendMode.reliable, MessageId.unGrapple);
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -320,6 +345,7 @@ public class Player : MonoBehaviour {
 
         bool using_gravity = message.GetBool();
         bool grappling = message.GetBool();
+        bool isTrigger = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
 
@@ -327,11 +353,14 @@ public class Player : MonoBehaviour {
         List[id].transform.position = pos;
 
         List[id].model.useGravity = using_gravity;
-        List[id].player_collider.isTrigger = !using_gravity;
+        List[id].player_collider.isTrigger = isTrigger;
 
         List[id].grapple_hook_script.grappling = grappling;
-        List[id].grapple_hook_model.velocity = grapple_hook_vel;
-        List[id].grapple_hook_model.position = grapple_hook_pos;
+
+        if (grappling) {
+            List[id].grapple_hook_model.velocity = grapple_hook_vel;
+            List[id].grapple_hook_model.position = grapple_hook_pos;
+        }
     }
     
     [MessageHandler((ushort)MessageId.startGrapple)]
@@ -341,6 +370,13 @@ public class Player : MonoBehaviour {
         float grappleHookSpeed = message.GetFloat();
 
         startGrapplers[id] = Tuple.Create<Vector3, float>(grappleDirection, grappleHookSpeed);
+    }
+
+    [MessageHandler((ushort)MessageId.unGrapple)]
+    private static void ReceiveUnGrapple(Message message) {
+        ushort id = message.GetUShort();
+
+        List[id].UnGrapple();
     }
 
     /*
@@ -426,6 +462,7 @@ public class Player : MonoBehaviour {
 
         bool using_gravity = message.GetBool();
         bool grappling = message.GetBool();
+        bool isTrigger = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
 
@@ -436,6 +473,7 @@ public class Player : MonoBehaviour {
 
         msg.AddBool(using_gravity);
         msg.AddBool(grappling);
+        msg.AddBool(isTrigger);
         msg.AddVector3(grapple_hook_vel);
         msg.AddVector3(grapple_hook_pos);
 
@@ -455,6 +493,18 @@ public class Player : MonoBehaviour {
         msg.AddUShort(fromClientId);
         msg.AddVector3(grappleDirection);
         msg.AddFloat(grappleHookSpeed);
+
+        foreach (ushort id in List.Keys) {
+            if (id != fromClientId) {
+                NetworkManager.Singleton.Server.Send(msg, id);
+            }
+        }
+    }
+
+    [MessageHandler((ushort)MessageId.unGrapple)]
+    private static void ReceiveUnGrapple(ushort fromClientId, Message message) {
+        Message msg = Message.Create(MessageSendMode.reliable, MessageId.unGrapple);
+        msg.AddUShort(fromClientId);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {
