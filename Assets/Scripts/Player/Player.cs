@@ -14,6 +14,7 @@ public class Player : MonoBehaviour {
     public Rigidbody model;
     public GameObject grapple_hook;
     public GameObject cam;
+    public GameObject headTop;
     public LineRenderer lineRenderer;
     public Rigidbody grapple_hook_model;
     public GrappleHook grapple_hook_script;
@@ -43,7 +44,8 @@ public class Player : MonoBehaviour {
             player_collider.isTrigger = false;
             model.constraints = RigidbodyConstraints.FreezePosition;
 
-            if (Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
+            // Cast the ray cast from the top of the player
+            if (Physics.Raycast(headTop.transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 2f)) {
                 UnGrapple();
             }
         }
