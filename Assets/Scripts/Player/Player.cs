@@ -19,6 +19,8 @@ public class Player : MonoBehaviour {
     public Rigidbody grapple_hook_model;
     public GrappleHook grapple_hook_script;
     public CapsuleCollider player_collider;
+    public Weapon c_weapon;
+    public Transform gun_loc;
 
     private float jumpForce = 7f;
     private float grappleHookSpeed = 50f;
