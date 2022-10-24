@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Pistol : Weapon {
 
-    public Pistol(int ammo) : base(ammo) {
+    public Pistol() : base(16) {
     }
 
     // Start is called before the first frame update

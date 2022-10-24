@@ -10,10 +10,19 @@ public class Weapon : MonoBehaviour {
         this.ammo = ammo;
     }
 
+    public Player GetCarrier() {
+        return carrier;
+    }
+
     // When a player runs into the weapon, if it has not already been picked up
     // Make this player pick it up
     protected void OnCollisionEnter(Collision collision) {
         if (carrier == null && collision.collider.transform.GetComponent<Player>() != null) {
+            // If the player already has a weapon
+            if (collision.collider.transform.GetComponent<Player>().c_weapon != null) {
+                return;
+            }
+            
             carrier = collision.collider.transform.GetComponent<Player>();
             carrier.c_weapon = this;
             transform.parent = carrier.cam.transform;
@@ -22,7 +31,7 @@ public class Weapon : MonoBehaviour {
     }
 
     // Update is called once per frame
-    void Update() {
+    private void Update() {
         if (carrier != null) {
             transform.position = carrier.gun_loc.position;
             transform.rotation = carrier.gun_loc.rotation;
