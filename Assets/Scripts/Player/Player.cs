@@ -25,7 +25,7 @@ public class Player : MonoBehaviour {
     private float jumpForce = 7f;
     private float grappleHookSpeed = 50f;
     private float grapplePlayerSpeed = 30f;
-    private bool[] inputs = {false, false};
+    private bool[] inputs = {false, false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
     private static Dictionary<ushort, Tuple<Vector3, float>> startGrapplers = new Dictionary<ushort, Tuple<Vector3, float>>();
 
@@ -77,6 +77,10 @@ public class Player : MonoBehaviour {
                 inputs[1] = true;
             }
 
+            if (Input.GetMouseButtonDown(0)) {
+                inputs[2] = true;
+            }
+
             SendModelDetails();
         }
     }
@@ -118,6 +122,20 @@ public class Player : MonoBehaviour {
         }
 
         inputs[1] = false;
+
+        // If the player wants to shoot their gun
+        if (inputs[2]) {
+            if (c_weapon != null) {
+                RaycastHit shootPoint;
+                Ray ray = cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+                Physics.Raycast(ray, out shootPoint);
+
+                Vector3 shootDirection = (shootPoint.point - c_weapon.projectileSpawn.position);
+                c_weapon.Shoot(shootDirection);
+            }
+        }
+
+        inputs[2] = false;
 
         // Handle others movements
         // The jumpers dictionary stores player ids with the jumpForces they have

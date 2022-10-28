@@ -5,6 +5,9 @@ using UnityEngine;
 public class Weapon : MonoBehaviour {
     protected int ammo;
     protected Player carrier = null;
+    [SerializeField] protected GameObject projectilePrefab;
+
+    public Transform projectileSpawn;
 
     public Weapon(int ammo) {
         this.ammo = ammo;
@@ -36,6 +39,9 @@ public class Weapon : MonoBehaviour {
             transform.position = carrier.gun_loc.position;
             transform.rotation = carrier.gun_loc.rotation;
         }
+    }
+
+    public virtual void Shoot(Vector3 shootDirection) {
     }
 
 }
