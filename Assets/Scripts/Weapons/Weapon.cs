@@ -19,6 +19,10 @@ public class Weapon : MonoBehaviour {
         return carrier;
     }
 
+    public void SetCarrier(Player carrier) {
+        this.carrier = carrier;
+    }
+
     public int GetAmmo() {
         return ammo;
     }

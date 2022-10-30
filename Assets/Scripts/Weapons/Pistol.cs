@@ -15,5 +15,6 @@ public class Pistol : Weapon {
         Rigidbody projectile = Instantiate(projectilePrefab, projectileSpawn.position, projectileSpawn.rotation).transform.Find("model").GetComponent<Rigidbody>();
         projectile.velocity = shootDirection.normalized * speed;
         projectile.constraints = RigidbodyConstraints.FreezeRotation;
+        projectile.GetComponent<PistolProjectile>().shooter = carrier;
     }
 }

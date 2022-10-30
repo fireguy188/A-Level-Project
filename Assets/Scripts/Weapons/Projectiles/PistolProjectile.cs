@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PistolProjectile : MonoBehaviour {
-    private void OnTriggerEnter(Collider collider) {
+    public Player shooter;
+
+    private void OnCollisionEnter(Collision collision) {
+        Collider collider = collision.collider;
+        
         Player p = collider.GetComponent<Player>();
-        if (p != null && p.cam.GetComponent<Camera>() == null) {
+        if (p != null && p != shooter) {
             // Bullet has hit a player, do damage
             p.Damage(10);
         }

@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 5252916000668544182}
   m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.4, y: 1, z: 0.4}
+  m_LocalScale: {x: 0.2, y: 1, z: 0.2}
   m_Children:
   - {fileID: 2261862878493555962}
   m_Father: {fileID: 0}
@@ -123,7 +123,7 @@ CapsuleCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6727311491346328696}
   m_Material: {fileID: 0}
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5
   m_Height: 2
@@ -137,7 +137,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6727311491346328696}
   serializedVersion: 2
-  m_Mass: 1
+  m_Mass: 0.1
   m_Drag: 0
   m_AngularDrag: 0.05
   m_UseGravity: 0
@@ -157,3 +157,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01a27ed7f6aae244c9a2d1b608152330, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shooter: {fileID: 0}

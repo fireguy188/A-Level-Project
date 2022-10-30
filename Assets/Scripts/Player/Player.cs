@@ -41,8 +41,10 @@ public class Player : MonoBehaviour {
         if (health < 0) {
             health = 0;
         }
-
-        healthBar.SetHealth(health);
+        
+        if (healthBar != null) {
+            healthBar.SetHealth(health);
+        }
     }
     
     private void OnDestroy() {
@@ -418,11 +420,19 @@ public class Player : MonoBehaviour {
             List[id].grapple_hook_model.position = grapple_hook_pos;
         }
 
-        if (weaponName == "pistol") {
-            GameObject weapon = Instantiate(Resources.Load<GameObject>(WeaponSpawn.pistolPrefabPath), Vector3.zero, Quaternion.identity);
-            weapon.transform.parent = List[id].cam.transform;
-            weapon.GetComponent<MeshCollider>().enabled = false;
-            List[id].c_weapon = weapon.GetComponent<Weapon>();
+        // If the weapon this player is holding is wrong
+        if (List[id].c_weapon == null || List[id].c_weapon.GetWeaponName() != weaponName || List[id].c_weapon.GetAmmo() != ammo) {
+            if (List[id].c_weapon != null) {
+                Destroy(List[id].c_weapon.gameObject);
+            }
+
+            if (weaponName == "pistol") {
+                GameObject weapon = Instantiate(Resources.Load<GameObject>(WeaponSpawn.pistolPrefabPath), Vector3.zero, Quaternion.identity);
+                List[id].c_weapon = weapon.GetComponent<Weapon>();
+                weapon.transform.parent = List[id].cam.transform;
+                weapon.GetComponent<MeshCollider>().enabled = false;
+                List[id].c_weapon.SetCarrier(List[id]);
+            }
         }
 
         List[id].health = health;
