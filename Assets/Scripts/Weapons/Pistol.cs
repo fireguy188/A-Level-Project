@@ -5,12 +5,10 @@ using UnityEngine;
 public class Pistol : Weapon {
     private float speed = 200;
 
-    public Pistol() : base(16) {
+    public Pistol() : base(16, "pistol") {
     }
 
-    // Start is called before the first frame update
-    void Start() {
-        
+    public Pistol(int ammo) : base(ammo, "pistol") {
     }
 
     public override void Shoot(Vector3 shootDirection) {

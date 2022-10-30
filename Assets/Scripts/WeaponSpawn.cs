@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class WeaponSpawn : MonoBehaviour {
-    public GameObject pistolPrefab;
+    public static string pistolPrefabPath = "Prefabs/Pistol";
     public Transform weaponPos;
+    public GameObject pistolPrefab;
 
     private Weapon currentWeapon;
     private bool spawning = true;
+    //asd
 
     // Start is called before the first frame update
     void Start() {
         // Start by spawning a weapon
+        pistolPrefab = Resources.Load<GameObject>(pistolPrefabPath);
         SpawnWeapon(pistolPrefab);
     }
 
     private void SpawnWeapon(GameObject weapon) {
         currentWeapon = Instantiate(weapon, weaponPos.position, Quaternion.identity).transform.Find("model").GetComponent<Weapon>();
         spawning = false;
-
     }
 
     IEnumerator WaitAndSpawn(GameObject weapon) {

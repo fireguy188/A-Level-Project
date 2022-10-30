@@ -5,16 +5,26 @@ using UnityEngine;
 public class Weapon : MonoBehaviour {
     protected int ammo;
     protected Player carrier = null;
+    protected string weaponName;
     [SerializeField] protected GameObject projectilePrefab;
 
     public Transform projectileSpawn;
 
-    public Weapon(int ammo) {
+    public Weapon(int ammo, string weaponName) {
         this.ammo = ammo;
+        this.weaponName = weaponName;
     }
 
     public Player GetCarrier() {
         return carrier;
+    }
+
+    public int GetAmmo() {
+        return ammo;
+    }
+
+    public string GetWeaponName() {
+        return weaponName;
     }
 
     // When a player runs into the weapon, if it has not already been picked up

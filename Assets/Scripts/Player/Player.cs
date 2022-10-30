@@ -144,6 +144,7 @@ public class Player : MonoBehaviour {
 
                 Vector3 shootDirection = (shootPoint.point - c_weapon.projectileSpawn.position);
                 c_weapon.Shoot(shootDirection);
+                SendShoot(shootDirection);
             }
         }
 
@@ -268,6 +269,17 @@ public class Player : MonoBehaviour {
         message.AddBool(player_collider.isTrigger);
         message.AddVector3(grapple_hook_model.velocity);
         message.AddVector3(grapple_hook_model.position);
+
+        // Send gun details
+        if (c_weapon != null) {
+            message.AddString(c_weapon.GetWeaponName());
+            message.AddInt(c_weapon.GetAmmo());
+        } else {
+            message.AddString("");
+            message.AddInt(0);
+        }
+        message.AddInt(health);
+
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -280,6 +292,12 @@ public class Player : MonoBehaviour {
 
     public void SendUnGrapple() {
         Message message = Message.Create(MessageSendMode.reliable, MessageId.unGrapple);
+        NetworkManager.Singleton.Client.Send(message);
+    }
+
+    public void SendShoot(Vector3 shootDirection) {
+        Message message = Message.Create(MessageSendMode.reliable, MessageId.shoot);
+        message.AddVector3(shootDirection);
         NetworkManager.Singleton.Client.Send(message);
     }
 
@@ -383,6 +401,10 @@ public class Player : MonoBehaviour {
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
 
+        string weaponName = message.GetString();
+        int ammo = message.GetInt();
+        int health = message.GetInt();
+
         List[id].model.velocity = vel;
         List[id].transform.position = pos;
 
@@ -395,6 +417,16 @@ public class Player : MonoBehaviour {
             List[id].grapple_hook_model.velocity = grapple_hook_vel;
             List[id].grapple_hook_model.position = grapple_hook_pos;
         }
+
+        if (weaponName == "pistol") {
+            GameObject weapon = Instantiate(Resources.Load<GameObject>(WeaponSpawn.pistolPrefabPath), Vector3.zero, Quaternion.identity);
+            weapon.transform.parent = List[id].cam.transform;
+            weapon.GetComponent<MeshCollider>().enabled = false;
+            List[id].c_weapon = weapon.GetComponent<Weapon>();
+        }
+
+        List[id].health = health;
+        List[id].healthBar.SetHealth(health);
     }
     
     [MessageHandler((ushort)MessageId.startGrapple)]
@@ -411,6 +443,14 @@ public class Player : MonoBehaviour {
         ushort id = message.GetUShort();
 
         List[id].UnGrapple();
+    }
+
+    [MessageHandler((ushort)MessageId.shoot)]
+    private static void ReceiveShoot(Message message) {
+        ushort id = message.GetUShort();
+        Vector3 shootDirection = message.GetVector3();
+
+        List[id].c_weapon.Shoot(shootDirection);
     }
 
     /*
@@ -500,6 +540,10 @@ public class Player : MonoBehaviour {
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
 
+        string weaponName = message.GetString();
+        int ammo = message.GetInt();
+        int health = message.GetInt();
+
         Message msg = Message.Create(MessageSendMode.reliable, MessageId.sync);
         msg.AddUShort(fromClientId);
         msg.AddVector3(vel);
@@ -510,6 +554,10 @@ public class Player : MonoBehaviour {
         msg.AddBool(isTrigger);
         msg.AddVector3(grapple_hook_vel);
         msg.AddVector3(grapple_hook_pos);
+
+        msg.AddString(weaponName);
+        msg.AddInt(ammo);
+        msg.AddInt(health);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {
@@ -539,6 +587,21 @@ public class Player : MonoBehaviour {
     private static void ReceiveUnGrapple(ushort fromClientId, Message message) {
         Message msg = Message.Create(MessageSendMode.reliable, MessageId.unGrapple);
         msg.AddUShort(fromClientId);
+
+        foreach (ushort id in List.Keys) {
+            if (id != fromClientId) {
+                NetworkManager.Singleton.Server.Send(msg, id);
+            }
+        }
+    }
+
+    [MessageHandler((ushort)MessageId.shoot)]
+    private static void ReceiveShoot(ushort fromClientId, Message message) {
+        Vector3 shootDirection = message.GetVector3();
+
+        Message msg = Message.Create(MessageSendMode.reliable, MessageId.shoot);
+        msg.AddUShort(fromClientId);
+        msg.AddVector3(shootDirection);
 
         foreach (ushort id in List.Keys) {
             if (id != fromClientId) {
