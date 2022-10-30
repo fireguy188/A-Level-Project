@@ -21,7 +21,9 @@ public class Player : MonoBehaviour {
     public CapsuleCollider player_collider;
     public Weapon c_weapon;
     public Transform gun_loc;
+    public HealthBar healthBar;
 
+    private int health = 100;
     private float jumpForce = 7f;
     private float grappleHookSpeed = 50f;
     private float grapplePlayerSpeed = 30f;
@@ -31,6 +33,16 @@ public class Player : MonoBehaviour {
 
     public float getGrapplePlayerSpeed() {
         return this.grapplePlayerSpeed;
+    }
+
+    public void Damage(int dmg) {
+        health -= dmg;
+        
+        if (health < 0) {
+            health = 0;
+        }
+
+        healthBar.SetHealth(health);
     }
     
     private void OnDestroy() {
