@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using RiptideNetworking;
+using UnityEngine.UI;
+using TMPro;
 
 public class Player : MonoBehaviour {
     public static Dictionary<ushort, Player> List = new Dictionary<ushort, Player>();
@@ -22,6 +24,9 @@ public class Player : MonoBehaviour {
     public Weapon c_weapon;
     public Transform gun_loc;
     public HealthBar healthBar;
+    public Image weaponInfo;
+    public TMP_Text ammoInfo;
+    public TMP_Text noWeaponText;
 
     private int health = 100;
     private float jumpForce = 7f;
@@ -74,14 +79,6 @@ public class Player : MonoBehaviour {
     }
 
     private void Update() {
-        if (model.velocity.x < 0.2) {
-            model.velocity.Set(0, model.velocity.y, model.velocity.z);
-        }
-
-        if (model.velocity.z < 0.2) {
-            model.velocity.Set(model.velocity.x, model.velocity.y, 0);
-        }
-
         if (ingame && Id == NetworkManager.Singleton.Client.Id) {
             if (Input.GetKey(KeyCode.Space)) {
                 inputs[0] = true;
@@ -188,11 +185,13 @@ public class Player : MonoBehaviour {
         model.velocity = grappleDirection.normalized * grapplePlayerSpeed;
         model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
         model.useGravity = false;
+        model.drag = 0;
         player_collider.isTrigger = true;
     }
 
     public void UnGrapple() {
         model.useGravity = true;
+        model.drag = 1;
         player_collider.isTrigger = false;
         model.constraints = RigidbodyConstraints.None;
         
@@ -267,6 +266,7 @@ public class Player : MonoBehaviour {
 
         // Send grapple hook model details
         message.AddBool(model.useGravity);
+        message.AddFloat(model.drag);
         message.AddBool(grapple_hook_script.grappling);
         message.AddBool(player_collider.isTrigger);
         message.AddVector3(grapple_hook_model.velocity);
@@ -398,6 +398,7 @@ public class Player : MonoBehaviour {
         Vector3 pos = message.GetVector3();
 
         bool using_gravity = message.GetBool();
+        float drag = message.GetFloat();
         bool grappling = message.GetBool();
         bool isTrigger = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
@@ -411,6 +412,7 @@ public class Player : MonoBehaviour {
         List[id].transform.position = pos;
 
         List[id].model.useGravity = using_gravity;
+        List[id].model.drag = drag;
         List[id].player_collider.isTrigger = isTrigger;
 
         List[id].grapple_hook_script.grappling = grappling;
@@ -427,9 +429,9 @@ public class Player : MonoBehaviour {
             }
 
             if (weaponName == "pistol") {
-                GameObject weapon = Instantiate(Resources.Load<GameObject>(WeaponSpawn.pistolPrefabPath), Vector3.zero, Quaternion.identity);
+                Transform weapon = Instantiate(Resources.Load<GameObject>(WeaponSpawn.pistolPrefabPath), Vector3.zero, Quaternion.identity).transform.Find("model");
                 List[id].c_weapon = weapon.GetComponent<Weapon>();
-                weapon.transform.parent = List[id].cam.transform;
+                weapon.parent = List[id].cam.transform;
                 weapon.GetComponent<MeshCollider>().enabled = false;
                 List[id].c_weapon.SetCarrier(List[id]);
             }
@@ -545,6 +547,7 @@ public class Player : MonoBehaviour {
         Vector3 pos = message.GetVector3();
 
         bool using_gravity = message.GetBool();
+        float drag = message.GetFloat();
         bool grappling = message.GetBool();
         bool isTrigger = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
@@ -560,6 +563,7 @@ public class Player : MonoBehaviour {
         msg.AddVector3(pos);
 
         msg.AddBool(using_gravity);
+        msg.AddFloat(drag);
         msg.AddBool(grappling);
         msg.AddBool(isTrigger);
         msg.AddVector3(grapple_hook_vel);

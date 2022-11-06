@@ -20,6 +20,10 @@ public class GameManager : MonoBehaviour {
             // player.grapple_hook.transform.position.Set(0, 0, 5);
             player.ingame = true;
 
+            if (player.noWeaponText != null) {
+                player.noWeaponText.transform.parent.parent.gameObject.SetActive(true);
+            }
+
             // If this is this player's character, enable the camera
             if (player.Id == NetworkManager.Singleton.Client.Id) {
                 player.gameObject.transform.Find("Camera").gameObject.SetActive(true);

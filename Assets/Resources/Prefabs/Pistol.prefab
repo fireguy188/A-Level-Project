@@ -174,5 +174,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e662217210ee6534ab6601efc2d50b85, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  weaponSprite: {fileID: 21300000, guid: 453952393037f2f43af50f1a2054feb0, type: 3}
   projectilePrefab: {fileID: 5252916000668544182, guid: 44d257425311f894db895c26abf3595e, type: 3}
   projectileSpawn: {fileID: 901306858385881810}

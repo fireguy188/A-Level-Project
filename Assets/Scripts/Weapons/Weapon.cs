@@ -6,6 +6,7 @@ public class Weapon : MonoBehaviour {
     protected int ammo;
     protected Player carrier = null;
     protected string weaponName;
+    [SerializeField] protected Sprite weaponSprite;
     [SerializeField] protected GameObject projectilePrefab;
 
     public Transform projectileSpawn;
@@ -44,6 +45,16 @@ public class Weapon : MonoBehaviour {
             carrier.c_weapon = this;
             transform.parent = carrier.cam.transform;
             GetComponent<MeshCollider>().enabled = false;
+
+            // Update player's HUD
+            if (carrier.noWeaponText != null) {
+                carrier.weaponInfo.sprite = weaponSprite;
+                carrier.ammoInfo.text = "16/16";
+
+                carrier.noWeaponText.enabled = false;
+                carrier.weaponInfo.enabled = true;
+                carrier.ammoInfo.enabled = true;
+            }
         } 
     }
 
