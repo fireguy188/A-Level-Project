@@ -16,5 +16,13 @@ public class Pistol : Weapon {
         projectile.velocity = shootDirection.normalized * speed;
         projectile.constraints = RigidbodyConstraints.FreezeRotation;
         projectile.GetComponent<PistolProjectile>().shooter = carrier;
+        ammo -= 1;
+
+        carrier.ammoInfo.text = $"{ammo}/16";
+
+        // If the ammo has run out
+        if (ammo == 0) {
+            Delete();
+        }
     }
 }

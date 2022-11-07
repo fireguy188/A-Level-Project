@@ -69,4 +69,13 @@ public class Weapon : MonoBehaviour {
     public virtual void Shoot(Vector3 shootDirection) {
     }
 
+    protected void Delete() {
+        carrier.c_weapon = null;
+        Destroy(this.gameObject);
+
+        carrier.noWeaponText.enabled = true;
+        carrier.weaponInfo.enabled = false;
+        carrier.ammoInfo.enabled = false;
+    }
+
 }
