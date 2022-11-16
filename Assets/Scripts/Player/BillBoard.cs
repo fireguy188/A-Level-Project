@@ -19,4 +19,8 @@ public class BillBoard : MonoBehaviour {
     private void LateUpdate() {
         transform.LookAt(transform.position + cam.forward);
     }
+
+    public void SetCamera(Transform cam) {
+        this.cam = cam;
+    }
 }

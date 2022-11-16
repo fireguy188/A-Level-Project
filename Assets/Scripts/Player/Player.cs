@@ -35,16 +35,54 @@ public class Player : MonoBehaviour {
     private bool[] inputs = {false, false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
     private static Dictionary<ushort, Tuple<Vector3, float>> startGrapplers = new Dictionary<ushort, Tuple<Vector3, float>>();
+    private bool isDead = false;
 
     public float getGrapplePlayerSpeed() {
         return this.grapplePlayerSpeed;
     }
 
-    public void Damage(int dmg) {
+    public void Damage(int dmg, Player shooter) {
+        if (isDead) {
+            return;
+        }
+
         health -= dmg;
         
-        if (health < 0) {
+        // If you have died
+        if (health <= 0) {
             health = 0;
+            isDead = true;
+
+            // Make character act like a ragdoll and be uncontrollable
+            model.constraints = RigidbodyConstraints.None;
+
+            if (cam.GetComponent<Camera>() != null) {
+                // Switch camera to killer's
+                cam.SetActive(false);
+                shooter.cam.AddComponent<Camera>();
+
+                // The killer wouldn't be able to see their healthbar from their point of view
+                // So remove it
+                shooter.transform.Find("HealthBar").gameObject.SetActive(false);
+
+                // disable the HUD as well
+                noWeaponText.transform.parent.parent.gameObject.SetActive(false);
+                
+                // Make all the healthbars face the right way
+                foreach (Player p in List.Values) {
+                    BillBoard billboard = p.healthBar.GetComponentInParent<BillBoard>();
+
+                    if (billboard != null) {
+                        billboard.SetCamera(shooter.cam.transform);
+                    }
+                }
+
+            } else {
+                // Otherwise remove this enemy's healthbar
+                transform.Find("HealthBar").gameObject.SetActive(false);
+                cam.SetActive(false);
+            }
+
         }
         
         if (healthBar != null) {
@@ -80,16 +118,20 @@ public class Player : MonoBehaviour {
 
     private void Update() {
         if (ingame && Id == NetworkManager.Singleton.Client.Id) {
-            if (Input.GetKey(KeyCode.Space)) {
-                inputs[0] = true;
-            }
 
-            if (Input.GetKeyDown(KeyCode.E)) {
-                inputs[1] = true;
-            }
+            // Only allow player to perform actions if they aren't dead
+            if (!isDead) {
+                if (Input.GetKey(KeyCode.Space)) {
+                    inputs[0] = true;
+                }
 
-            if (Input.GetMouseButtonDown(0)) {
-                inputs[2] = true;
+                if (Input.GetKeyDown(KeyCode.E)) {
+                    inputs[1] = true;
+                }
+
+                if (Input.GetMouseButtonDown(0)) {
+                    inputs[2] = true;
+                }
             }
 
             SendModelDetails();
@@ -193,7 +235,7 @@ public class Player : MonoBehaviour {
         model.useGravity = true;
         model.drag = 1;
         player_collider.isTrigger = false;
-        model.constraints = RigidbodyConstraints.None;
+        model.constraints = RigidbodyConstraints.FreezeRotation;
         
         grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
         grapple_hook_script.grappling = false;
@@ -379,8 +421,10 @@ public class Player : MonoBehaviour {
 
         Quaternion cam_rotation = message.GetQuaternion();
 
-        List[id].transform.rotation = rotation;
-        List[id].cam.transform.localRotation = cam_rotation;
+        List[id].transform.rotation = Quaternion.Lerp(List[id].transform.rotation, rotation, Time.time);
+        List[id].cam.transform.localRotation = Quaternion.Lerp(List[id].cam.transform.localRotation, cam_rotation, Time.time);
+        // List[id].transform.rotation = rotation;
+        // List[id].cam.transform.localRotation = cam_rotation;
     }
 
     [MessageHandler((ushort)MessageId.sendJump)]

@@ -18,7 +18,9 @@ public class Pistol : Weapon {
         projectile.GetComponent<PistolProjectile>().shooter = carrier;
         ammo -= 1;
 
-        carrier.ammoInfo.text = $"{ammo}/16";
+        if (carrier.noWeaponText != null) {
+            carrier.ammoInfo.text = $"{ammo}/16";
+        }
 
         // If the ammo has run out
         if (ammo == 0) {

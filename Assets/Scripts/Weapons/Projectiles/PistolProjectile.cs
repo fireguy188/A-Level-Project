@@ -11,7 +11,7 @@ public class PistolProjectile : MonoBehaviour {
         Player p = collider.GetComponent<Player>();
         if (p != null && p != shooter) {
             // Bullet has hit a player, do damage
-            p.Damage(10);
+            p.Damage(10, shooter);
         }
 
         // Destroy the bullet
