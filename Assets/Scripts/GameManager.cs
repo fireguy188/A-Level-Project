@@ -1,9 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameManager : MonoBehaviour {
+
+    private Canvas gameOverCanvas;
+    private TMP_Text gameOverMessage;
+    
+    public bool gameOver = false;
+    private bool displayedWinner = false;
+
     private void Awake() {
+        gameOverCanvas = Instantiate(Resources.Load<Canvas>("Prefabs/GameOverCanvas"));
+        gameOverMessage = gameOverCanvas.transform.Find("Message").GetComponent<TMP_Text>();
+        gameOverCanvas.enabled = false;
+        
         // Spawn in the players
         foreach (Player player in Player.List.Values) {
             // Get the player's spawn location
@@ -14,13 +26,9 @@ public class GameManager : MonoBehaviour {
             player.model.velocity = Vector3.zero;
             player.model.transform.position = spawnLoc;
             player.model.transform.rotation = spawnRot;
-
-            // Also get the model of the grappling hook and set its spawn position
-            // player.grapple_hook.transform.parent = player.transform.Find("grapplehook_loc");
-            // player.grapple_hook.transform.position.Set(0, 0, 5);
             player.ingame = true;
 
-            if (player.noWeaponText != null) {
+            if (player.cam.GetComponent<Camera>() != null) {
                 player.noWeaponText.transform.parent.parent.gameObject.SetActive(true);
             }
 
@@ -28,6 +36,36 @@ public class GameManager : MonoBehaviour {
             if (player.Id == NetworkManager.Singleton.Client.Id) {
                 player.gameObject.transform.Find("Camera").gameObject.SetActive(true);
             }
+        }
+    }
+
+    private void Update() {
+        Player lastAlive = null;
+        foreach (Player player in Player.List.Values) {
+            if (!player.isDead) {
+                if (lastAlive == null) {
+                    lastAlive = player;
+                    gameOver = true;
+                } else {
+                    gameOver = false;
+                }
+            }
+        }
+
+        if (gameOver && !displayedWinner) {
+            displayedWinner = true;
+            
+            // Display you won to the player who has won
+            if (lastAlive.Id == NetworkManager.Singleton.Client.Id) {
+                gameOverMessage.text = "You won!";
+            } else {
+                // Display the name of the person who won
+                gameOverMessage.text = $"{lastAlive.username} won!";
+            }
+
+            // Replace the HUD with the winner message
+            lastAlive.noWeaponText.transform.parent.parent.gameObject.SetActive(false);
+            gameOverCanvas.enabled = true;
         }
     }
 }

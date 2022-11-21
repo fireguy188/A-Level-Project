@@ -27,6 +27,7 @@ public class Player : MonoBehaviour {
     public Image weaponInfo;
     public TMP_Text ammoInfo;
     public TMP_Text noWeaponText;
+    public bool isDead = false;
 
     private int health = 100;
     private float jumpForce = 7f;
@@ -35,7 +36,6 @@ public class Player : MonoBehaviour {
     private bool[] inputs = {false, false, false};
     private static Dictionary<ushort, float> jumpers = new Dictionary<ushort, float>();
     private static Dictionary<ushort, Tuple<Vector3, float>> startGrapplers = new Dictionary<ushort, Tuple<Vector3, float>>();
-    private bool isDead = false;
 
     public float getGrapplePlayerSpeed() {
         return this.grapplePlayerSpeed;
@@ -43,6 +43,11 @@ public class Player : MonoBehaviour {
 
     public void Damage(int dmg, Player shooter) {
         if (isDead) {
+            return;
+        }
+
+        // Don't allow a shot from a dead person to do damage
+        if (shooter.isDead) {
             return;
         }
 
@@ -65,8 +70,9 @@ public class Player : MonoBehaviour {
                 // So remove it
                 shooter.transform.Find("HealthBar").gameObject.SetActive(false);
 
-                // disable the HUD as well
+                // disable the HUD as well and enable it for the player you are spectating
                 noWeaponText.transform.parent.parent.gameObject.SetActive(false);
+                shooter.noWeaponText.transform.parent.parent.gameObject.SetActive(true);
                 
                 // Make all the healthbars face the right way
                 foreach (Player p in List.Values) {
