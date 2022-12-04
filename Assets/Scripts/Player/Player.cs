@@ -144,7 +144,7 @@ public class Player : MonoBehaviour {
 
     private void FixedUpdate() {
         // Draw line for grappling hook
-        if (grapple_hook_script.grappling) {
+        if (grapple_hook.transform.parent == null) {
             lineRenderer.SetPosition(0, grapple_hook_script.grapplehook_loc.position);
             lineRenderer.SetPosition(1, grapple_hook_model.position);
         } else {
@@ -154,7 +154,7 @@ public class Player : MonoBehaviour {
         }
 
         // Handle own movements
-        if (!grapple_hook_script.grappling && inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
+        if (grapple_hook.transform.parent != null && inputs[0] && Physics.Raycast(transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 0.01f)) {
             model.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             SendJump();
         }
@@ -163,7 +163,7 @@ public class Player : MonoBehaviour {
 
         // If the player wants to start grappling
         if (inputs[1]) {
-            if (!grapple_hook_script.grappling && grapple_hook_script.current_collisions == 0) {
+            if (grapple_hook.transform.parent != null && grapple_hook_script.current_collisions == 0) {
                 RaycastHit grapplePoint;
                 Ray ray = cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
                 Physics.Raycast(ray, out grapplePoint);
@@ -222,7 +222,6 @@ public class Player : MonoBehaviour {
         grapple_hook_model.velocity = grappleDirection.normalized * grappleHookSpeed;
         grapple_hook_model.rotation = Quaternion.LookRotation(grappleDirection.normalized);
         grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotation;
-        grapple_hook_script.grappling = true;
         grapple_hook.transform.parent = null;
     }
 
@@ -242,7 +241,6 @@ public class Player : MonoBehaviour {
         model.constraints = RigidbodyConstraints.FreezeRotation;
         
         grapple_hook_model.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY;
-        grapple_hook_script.grappling = false;
         grapple_hook.transform.parent = cam.transform;
     }
 
@@ -313,7 +311,6 @@ public class Player : MonoBehaviour {
         // Send grapple hook model details
         message.AddBool(model.useGravity);
         message.AddFloat(model.drag);
-        message.AddBool(grapple_hook_script.grappling);
         message.AddBool(player_collider.isTrigger);
         message.AddVector3(grapple_hook_model.velocity);
         message.AddVector3(grapple_hook_model.position);
@@ -448,7 +445,6 @@ public class Player : MonoBehaviour {
 
         bool using_gravity = message.GetBool();
         float drag = message.GetFloat();
-        bool grappling = message.GetBool();
         bool isTrigger = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
@@ -464,9 +460,7 @@ public class Player : MonoBehaviour {
         List[id].model.drag = drag;
         List[id].player_collider.isTrigger = isTrigger;
 
-        List[id].grapple_hook_script.grappling = grappling;
-
-        if (grappling) {
+        if (List[id].grapple_hook.transform.parent == null) {
             List[id].grapple_hook_model.velocity = grapple_hook_vel;
             List[id].grapple_hook_model.position = grapple_hook_pos;
         }
@@ -597,7 +591,6 @@ public class Player : MonoBehaviour {
 
         bool using_gravity = message.GetBool();
         float drag = message.GetFloat();
-        bool grappling = message.GetBool();
         bool isTrigger = message.GetBool();
         Vector3 grapple_hook_vel = message.GetVector3();
         Vector3 grapple_hook_pos = message.GetVector3();
@@ -613,7 +606,6 @@ public class Player : MonoBehaviour {
 
         msg.AddBool(using_gravity);
         msg.AddFloat(drag);
-        msg.AddBool(grappling);
         msg.AddBool(isTrigger);
         msg.AddVector3(grapple_hook_vel);
         msg.AddVector3(grapple_hook_pos);

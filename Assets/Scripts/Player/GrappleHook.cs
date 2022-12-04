@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class GrappleHook : MonoBehaviour {
     public Transform grapplehook_loc;
-    public bool grappling = false;
     public GameObject player_prefab;
     public int current_collisions = 0;
 
@@ -15,7 +14,7 @@ public class GrappleHook : MonoBehaviour {
     }
 
     private void Update() {
-        if (!grappling) {
+        if (transform.parent != null) {
             transform.position = grapplehook_loc.position;
             transform.rotation = grapplehook_loc.rotation;
         }
@@ -23,7 +22,7 @@ public class GrappleHook : MonoBehaviour {
 
     private void OnCollisionEnter(Collision collision) {
         current_collisions++;
-        if (grappling && collision.collider != player.player_collider) {
+        if (transform.parent == null && collision.collider != player.player_collider) {
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
 
             // Activate step 2 of grappling
