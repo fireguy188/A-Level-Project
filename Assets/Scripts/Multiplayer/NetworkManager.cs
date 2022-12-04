@@ -152,6 +152,8 @@ public class NetworkManager : MonoBehaviour {
         }
         Player.List.Clear();
 
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
         SceneManager.LoadScene("MainMenu");
     }
 

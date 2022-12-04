@@ -169,6 +169,7 @@ MonoBehaviour:
   weaponInfo: {fileID: 9202304688003978703}
   ammoInfo: {fileID: 2449022059969984317}
   noWeaponText: {fileID: 3839205698977072995}
+  isDead: 0
 --- !u!54 &6348843831302541116
 Rigidbody:
   m_ObjectHideFlags: 0

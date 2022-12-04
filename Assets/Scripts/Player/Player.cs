@@ -53,7 +53,7 @@ public class Player : MonoBehaviour {
 
         health -= dmg;
         
-        // If you have died
+        // If this player has died
         if (health <= 0) {
             health = 0;
             isDead = true;
@@ -61,7 +61,9 @@ public class Player : MonoBehaviour {
             // Make character act like a ragdoll and be uncontrollable
             model.constraints = RigidbodyConstraints.None;
 
-            if (cam.GetComponent<Camera>() != null) {
+            // If you are this player
+            if (cam.GetComponent<Camera>() != null && cam.GetComponent<Camera>().isActiveAndEnabled) {
+                Debug.Log("crazy1");
                 // Switch camera to killer's
                 cam.SetActive(false);
                 shooter.cam.AddComponent<Camera>();
@@ -87,6 +89,7 @@ public class Player : MonoBehaviour {
                 // Otherwise remove this enemy's healthbar
                 transform.Find("HealthBar").gameObject.SetActive(false);
                 cam.SetActive(false);
+                Debug.Log("crazy2");
             }
 
         }
@@ -94,11 +97,6 @@ public class Player : MonoBehaviour {
         if (healthBar != null) {
             healthBar.SetHealth(health);
         }
-    }
-    
-    private void OnDestroy() {
-        Destroy(grapple_hook);
-        List.Remove(Id);
     }
 
     private void OnTriggerEnter(Collider other) {
@@ -262,7 +260,7 @@ public class Player : MonoBehaviour {
         player.ingame = false;
         player.name = $"Player {id} ({username})";
         DontDestroyOnLoad(player);
-        List.Add(id, player);
+        List[id] = player;
         if (SceneManager.GetActiveScene().name == "GameLobby") {
             GameLobbyMenu.Singleton.UpdateLobbyMenu();
         }
@@ -427,10 +425,11 @@ public class Player : MonoBehaviour {
 
         Quaternion cam_rotation = message.GetQuaternion();
 
-        List[id].transform.rotation = Quaternion.Lerp(List[id].transform.rotation, rotation, Time.time);
-        List[id].cam.transform.localRotation = Quaternion.Lerp(List[id].cam.transform.localRotation, cam_rotation, Time.time);
-        // List[id].transform.rotation = rotation;
-        // List[id].cam.transform.localRotation = cam_rotation;
+        try {
+            List[id].transform.rotation = Quaternion.Lerp(List[id].transform.rotation, rotation, Time.time);
+            List[id].cam.transform.localRotation = Quaternion.Lerp(List[id].cam.transform.localRotation, cam_rotation, Time.time);
+        } catch {
+        }
     }
 
     [MessageHandler((ushort)MessageId.sendJump)]

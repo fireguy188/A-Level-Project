@@ -28,9 +28,4 @@ public class PlayerCam : MonoBehaviour {
         transform.localRotation = Quaternion.Euler(xRotation, 0, 0);
         transform.parent.rotation = Quaternion.Euler(0, yRotation, 0);
     }
-
-    private void OnDestroy() {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
 }
