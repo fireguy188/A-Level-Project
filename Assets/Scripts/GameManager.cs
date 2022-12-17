@@ -88,11 +88,16 @@ public class GameManager : MonoBehaviour {
 
             if (wins[lastAlive.Id] == 3) {
                 // Finish the game
+                Invoke("EndGame", 5);
             } else {
                 // New round
                 Invoke("StartNewRound", 5);
             }
         }
+    }
+
+    private void EndGame() {
+        NetworkManager.Singleton.LeaveGame();
     }
 
     private void StartNewRound() {

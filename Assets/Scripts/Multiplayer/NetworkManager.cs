@@ -111,7 +111,10 @@ public class NetworkManager : MonoBehaviour {
 
     internal void LeaveGame() {
         Client.Disconnect();
-        Server.Stop();
+
+        if (Server.IsRunning) {
+            Server.Stop();
+        }
         ReturnToMainMenu();
     }
 
@@ -145,7 +148,7 @@ public class NetworkManager : MonoBehaviour {
         ReturnToMainMenu();
     }
 
-    private void ReturnToMainMenu() {
+    public void ReturnToMainMenu() {
         foreach (Player player in Player.List.Values) {
             Destroy(player.grapple_hook);
             Destroy(player.gameObject);
