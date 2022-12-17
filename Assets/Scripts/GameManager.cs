@@ -5,6 +5,7 @@ using TMPro;
 
 public class GameManager : MonoBehaviour {
 
+    private Canvas pauseCanvas;
     private Canvas gameOverCanvas;
     private TMP_Text gameOverMessage;
     [SerializeField] private TMP_Text winsInfo;
@@ -14,9 +15,11 @@ public class GameManager : MonoBehaviour {
     private Dictionary<ushort, int> wins = new Dictionary<ushort, int>();
 
     private void Awake() {
+        pauseCanvas = Instantiate(Resources.Load<Canvas>("Prefabs/PauseMenu"));
         gameOverCanvas = Instantiate(Resources.Load<Canvas>("Prefabs/GameOverCanvas"));
         gameOverMessage = gameOverCanvas.transform.Find("Message").GetComponent<TMP_Text>();
         gameOverCanvas.enabled = false;
+        pauseCanvas.enabled = false;
 
         // Display initial win count of 0 for every player
         string winsInfoStr = "";
@@ -48,7 +51,28 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    private void PauseGame() {
+        pauseCanvas.enabled = true;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    private void UnPauseGame() {
+        pauseCanvas.enabled = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
     private void Update() {
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            // Toggle the pause menu
+            if (!pauseCanvas.enabled) {
+                PauseGame();
+            } else {
+                UnPauseGame();
+            }
+        }
+
         Player lastAlive = null;
         foreach (Player player in Player.List.Values) {
             if (!player.isDead) {

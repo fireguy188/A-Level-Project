@@ -124,7 +124,8 @@ public class Player : MonoBehaviour {
         if (ingame && Id == NetworkManager.Singleton.Client.Id) {
 
             // Only allow player to perform actions if they aren't dead
-            if (!isDead) {
+            // and not paused
+            if (!isDead && !Cursor.visible) {
                 if (Input.GetKey(KeyCode.Space)) {
                     inputs[0] = true;
                 }
