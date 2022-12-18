@@ -148,7 +148,7 @@ public class NetworkManager : MonoBehaviour {
         ReturnToMainMenu();
     }
 
-    public void ReturnToMainMenu() {
+    private void ReturnToMainMenu() {
         foreach (Player player in Player.List.Values) {
             Destroy(player.grapple_hook);
             Destroy(player.gameObject);

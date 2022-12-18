@@ -5,14 +5,17 @@ using UnityEngine;
 public class PauseHandler : MonoBehaviour
 {
     // Start is called before the first frame update
-    void Start()
-    {
+    void Start() {
         
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+    public void ContinueClicked() {
+        transform.parent.GetComponent<Canvas>().enabled = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    public void ExitClicked() {
+        NetworkManager.Singleton.LeaveGame();
     }
 }

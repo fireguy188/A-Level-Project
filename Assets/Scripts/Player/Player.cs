@@ -105,7 +105,7 @@ public class Player : MonoBehaviour {
         if (other.gameObject.transform.parent != null && other.gameObject.transform.parent.gameObject == grapple_hook) {
             model.velocity = Vector3.zero;
             player_collider.isTrigger = false;
-            model.constraints = RigidbodyConstraints.FreezePosition;
+            model.constraints = RigidbodyConstraints.FreezeAll;
 
             // Cast the ray cast from the top of the player
             if (Physics.Raycast(headTop.transform.position, -Vector3.up, GetComponent<Collider>().bounds.extents.y + 2f)) {
