@@ -212,8 +212,8 @@ public class Player : MonoBehaviour {
 
         startGrapplers.Clear();
 
-        // Send sync message every 20 ticks
-        if (ingame && Id == NetworkManager.Singleton.Client.Id && NetworkManager.Singleton.tick % 20 == 0) {
+        // Send sync message every tick
+        if (ingame && Id == NetworkManager.Singleton.Client.Id) {
             SendSync();
         }
     }

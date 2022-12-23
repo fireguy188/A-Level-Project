@@ -451,7 +451,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   grapplehook_loc: {fileID: 514503918987951758}
-  grappling: 0
   player_prefab: {fileID: 1051654659858733230}
   current_collisions: 0
 --- !u!1 &3467170090305264329

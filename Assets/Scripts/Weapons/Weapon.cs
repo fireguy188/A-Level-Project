@@ -34,14 +34,14 @@ public class Weapon : MonoBehaviour {
 
     // When a player runs into the weapon, if it has not already been picked up
     // Make this player pick it up
-    protected void OnCollisionEnter(Collision collision) {
-        if (carrier == null && collision.collider.transform.GetComponent<Player>() != null) {
+    protected void OnTriggerEnter(Collider collider) {
+        if (carrier == null && collider.transform.GetComponent<Player>() != null) {
             // If the player already has a weapon
-            if (collision.collider.transform.GetComponent<Player>().c_weapon != null) {
+            if (collider.transform.GetComponent<Player>().c_weapon != null) {
                 return;
             }
             
-            carrier = collision.collider.transform.GetComponent<Player>();
+            carrier = collider.transform.GetComponent<Player>();
             carrier.c_weapon = this;
             transform.parent = carrier.cam.transform;
             GetComponent<MeshCollider>().enabled = false;
