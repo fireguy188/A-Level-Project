@@ -21,7 +21,6 @@ public class GrappleHook : MonoBehaviour {
     }
 
     private void OnCollisionEnter(Collision collision) {
-        current_collisions++;
         if (transform.parent == null && collision.collider != player.player_collider) {
             GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezeAll;
 
@@ -31,9 +30,5 @@ public class GrappleHook : MonoBehaviour {
 
             player.Grapple2(grappleDirection, player.getGrapplePlayerSpeed());
         }
-    }
-
-    private void OnCollisionExit(Collision collision) {
-        current_collisions--;
     }
 }

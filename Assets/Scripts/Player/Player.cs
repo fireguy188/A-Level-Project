@@ -164,7 +164,7 @@ public class Player : MonoBehaviour {
 
         // If the player wants to start grappling
         if (inputs[1]) {
-            if (grapple_hook.transform.parent != null && grapple_hook_script.current_collisions == 0) {
+            if (grapple_hook.transform.parent != null) {
                 RaycastHit grapplePoint;
                 Ray ray = cam.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
                 Physics.Raycast(ray, out grapplePoint);
