@@ -2,6 +2,7 @@ using RiptideNetworking;
 using RiptideNetworking.Utils;
 using System;
 using System.Net;
+using System.Net.Sockets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -96,8 +97,20 @@ public class NetworkManager : MonoBehaviour {
     }
     
     internal void StartHost() {
-        string externalIpString = new WebClient().DownloadString("http://icanhazip.com").Replace("\\r\\n", "").Replace("\\n", "").Trim();
-        connectedIP = externalIpString;
+        string externalIpString;
+        try {
+            externalIpString = new WebClient().DownloadString("http://icanhazip.com").Replace("\\r\\n", "").Replace("\\n", "").Trim();
+        } catch {
+            externalIpString = "NO INTERNET";
+        }
+
+        string localIPString;
+        using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0)) {
+            socket.Connect("8.8.8.8", 65530);
+            IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
+            localIPString = endPoint.Address.ToString();
+        }
+        connectedIP = "\n" + externalIpString + "\n" + localIPString;
         chosenMap = "Swinging Start";
         Server.Start(port, maxPlayers);
         Client.Connect($"127.0.0.1:{port}");

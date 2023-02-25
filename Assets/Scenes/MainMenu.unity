@@ -2485,7 +2485,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   port: 20655
-  maxPlayers: 2
+  maxPlayers: 4
   tick: 0
   playerPrefab: {fileID: 1051654659858733230, guid: bb9987ce49dfbc84bb7db6e97e556848, type: 3}
   localPlayerPrefab: {fileID: 359640762164420528, guid: f95fa3eb90195254c8bee711d22d8960, type: 3}
