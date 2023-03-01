@@ -110,7 +110,7 @@ public class NetworkManager : MonoBehaviour {
             IPEndPoint endPoint = socket.LocalEndPoint as IPEndPoint;
             localIPString = endPoint.Address.ToString();
         }
-        connectedIP = "\n" + externalIpString + "\n" + localIPString;
+        connectedIP = "\nEXT:" + externalIpString + "\nINT:" + localIPString;
         chosenMap = "Swinging Start";
         Server.Start(port, maxPlayers);
         Client.Connect($"127.0.0.1:{port}");

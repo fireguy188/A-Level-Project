@@ -63,7 +63,6 @@ public class Player : MonoBehaviour {
 
             // If you are this player
             if (cam.GetComponent<Camera>() != null && cam.GetComponent<Camera>().isActiveAndEnabled) {
-                Debug.Log("crazy1");
                 // Switch camera to killer's
                 cam.SetActive(false);
                 shooter.cam.AddComponent<Camera>();
@@ -89,7 +88,6 @@ public class Player : MonoBehaviour {
                 // Otherwise remove this enemy's healthbar
                 transform.Find("HealthBar").gameObject.SetActive(false);
                 cam.SetActive(false);
-                Debug.Log("crazy2");
             }
 
         }
